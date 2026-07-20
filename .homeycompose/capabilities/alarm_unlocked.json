@@ -1,6 +1,7 @@
 {
   "type": "boolean",
   "title": { "en": "Unlocked", "ko": "잠금 해제" },
+  "icon": "/assets/capabilities/lock-open-outline.svg",
   "getable": true,
   "setable": false,
   "insights": true,

@@ -45,8 +45,14 @@ class SmartDoorDevice extends Device {
     // Only alarm_ booleans are eligible as tile indicators, so expose the lock
     // state as "unlocked" (on = door not locked → shows as a warning indicator).
     await this._syncCap('alarm_unlocked', !!this.settings.lock_id, null);
-    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { title: { en: 'Doorbell', ko: '초인종' } });
-    await this._syncCap('alarm_motion', !!this.settings.motion_id, { title: { en: 'Motion', ko: '모션' } });
+    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, {
+      title: { en: 'Doorbell', ko: '초인종' },
+      icon: '/assets/capabilities/bell-ring-outline.svg',
+    });
+    await this._syncCap('alarm_motion', !!this.settings.motion_id, {
+      title: { en: 'Motion', ko: '모션' },
+      icon: '/assets/capabilities/motion-sensor.svg',
+    });
   }
 
   async _syncCap(cap, want, options) {
