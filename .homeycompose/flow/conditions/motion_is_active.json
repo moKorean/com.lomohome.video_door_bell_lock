@@ -1,0 +1,6 @@
+{
+  "id": "motion_is_active",
+  "title": { "en": "Motion !{{is|isn't}} detected", "ko": "서성임이 !{{감지되는 중이면|감지되는 중이 아니면}}" },
+  "hint": { "en": "Checks whether the linked motion sensor is currently active.", "ko": "연동된 모션 센서가 현재 감지 중인지 확인합니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}

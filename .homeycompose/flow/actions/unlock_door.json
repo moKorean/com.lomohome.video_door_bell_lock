@@ -1,0 +1,6 @@
+{
+  "id": "unlock_door",
+  "title": { "en": "Unlock the door", "ko": "문 열기" },
+  "hint": { "en": "Unlocks the linked door lock.", "ko": "연동된 도어락을 해제합니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}

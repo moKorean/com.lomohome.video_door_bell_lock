@@ -1,0 +1,6 @@
+{
+  "id": "lock_locked",
+  "title": { "en": "The door was locked", "ko": "도어락이 잠기면" },
+  "hint": { "en": "Triggers when the linked door lock becomes locked.", "ko": "연동된 도어락이 잠기면 실행됩니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}

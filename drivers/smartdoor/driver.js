@@ -12,9 +12,20 @@ class SmartDoorDriver extends Driver {
 
     this.doorbellTrigger = this.homey.flow.getDeviceTriggerCard('doorbell_rang');
     this.motionTrigger = this.homey.flow.getDeviceTriggerCard('motion_detected');
+    this.lockLockedTrigger = this.homey.flow.getDeviceTriggerCard('lock_locked');
+    this.lockUnlockedTrigger = this.homey.flow.getDeviceTriggerCard('lock_unlocked');
 
     this.homey.flow.getConditionCard('lock_is_locked')
       .registerRunListener(async (args) => args.device.getCapabilityValue('locked') === true);
+    this.homey.flow.getConditionCard('motion_is_active')
+      .registerRunListener(async (args) => args.device.getCapabilityValue('alarm_loitering') === true);
+    this.homey.flow.getConditionCard('doorbell_is_ringing')
+      .registerRunListener(async (args) => args.device.getCapabilityValue('alarm_doorbell') === true);
+
+    this.homey.flow.getActionCard('lock_door')
+      .registerRunListener(async (args) => args.device.setLock(true));
+    this.homey.flow.getActionCard('unlock_door')
+      .registerRunListener(async (args) => args.device.setLock(false));
   }
 
   async triggerDoorbell(device) {
@@ -23,6 +34,14 @@ class SmartDoorDriver extends Driver {
 
   async triggerMotion(device) {
     await this.motionTrigger.trigger(device).catch(this.error);
+  }
+
+  async triggerLockLocked(device) {
+    await this.lockLockedTrigger.trigger(device).catch(this.error);
+  }
+
+  async triggerLockUnlocked(device) {
+    await this.lockUnlockedTrigger.trigger(device).catch(this.error);
   }
 
   /** Handlers shared by pair + repair: device lists + camera discovery. */

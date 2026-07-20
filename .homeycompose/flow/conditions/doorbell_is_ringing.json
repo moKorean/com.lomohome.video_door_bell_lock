@@ -1,0 +1,6 @@
+{
+  "id": "doorbell_is_ringing",
+  "title": { "en": "The doorbell !{{is|isn't}} ringing", "ko": "초인종이 !{{울리는 중이면|울리는 중이 아니면}}" },
+  "hint": { "en": "Checks whether the linked doorbell sensor is currently active.", "ko": "연동된 초인종 센서가 현재 울리는 중인지 확인합니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}

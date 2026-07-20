@@ -83,10 +83,46 @@
         ]
       },
       {
+        "id": "lock_locked",
+        "title": {
+          "en": "The door was locked",
+          "ko": "도어락이 잠기면"
+        },
+        "hint": {
+          "en": "Triggers when the linked door lock becomes locked.",
+          "ko": "연동된 도어락이 잠기면 실행됩니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
+        "id": "lock_unlocked",
+        "title": {
+          "en": "The door was unlocked",
+          "ko": "도어락이 해제되면"
+        },
+        "hint": {
+          "en": "Triggers when the linked door lock becomes unlocked.",
+          "ko": "연동된 도어락이 해제되면 실행됩니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
         "id": "motion_detected",
         "title": {
           "en": "Motion was detected",
-          "ko": "모션이 감지되면"
+          "ko": "서성임이 감지되면"
         },
         "hint": {
           "en": "Triggers when the linked motion sensor is activated.",
@@ -103,6 +139,24 @@
     ],
     "conditions": [
       {
+        "id": "doorbell_is_ringing",
+        "title": {
+          "en": "The doorbell !{{is|isn't}} ringing",
+          "ko": "초인종이 !{{울리는 중이면|울리는 중이 아니면}}"
+        },
+        "hint": {
+          "en": "Checks whether the linked doorbell sensor is currently active.",
+          "ko": "연동된 초인종 센서가 현재 울리는 중인지 확인합니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
         "id": "lock_is_locked",
         "title": {
           "en": "The door !{{is|isn't}} locked",
@@ -111,6 +165,62 @@
         "hint": {
           "en": "Checks whether the linked door lock is currently locked.",
           "ko": "연동된 도어락이 현재 잠겨 있는지 확인합니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
+        "id": "motion_is_active",
+        "title": {
+          "en": "Motion !{{is|isn't}} detected",
+          "ko": "서성임이 !{{감지되는 중이면|감지되는 중이 아니면}}"
+        },
+        "hint": {
+          "en": "Checks whether the linked motion sensor is currently active.",
+          "ko": "연동된 모션 센서가 현재 감지 중인지 확인합니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "lock_door",
+        "title": {
+          "en": "Lock the door",
+          "ko": "문 잠그기"
+        },
+        "hint": {
+          "en": "Locks the linked door lock.",
+          "ko": "연동된 도어락을 잠급니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
+        "id": "unlock_door",
+        "title": {
+          "en": "Unlock the door",
+          "ko": "문 열기"
+        },
+        "hint": {
+          "en": "Unlocks the linked door lock.",
+          "ko": "연동된 도어락을 해제합니다."
         },
         "args": [
           {

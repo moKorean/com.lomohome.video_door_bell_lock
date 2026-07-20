@@ -145,7 +145,12 @@ class SmartDoorDevice extends Device {
         };
         const current = lock.capabilitiesObj && lock.capabilitiesObj.locked;
         if (current && typeof current.value === 'boolean') mirror(current.value);
-        this._instances.push(lock.makeCapabilityInstance('locked', (value) => mirror(value === true)));
+        this._instances.push(lock.makeCapabilityInstance('locked', (value) => {
+          const v = value === true;
+          mirror(v);
+          if (v) this.driver.triggerLockLocked(this);
+          else this.driver.triggerLockUnlocked(this);
+        }));
         await lock.connect()
           .then(() => this.log(`Subscribed to locked of ${lock.name} (realtime)`))
           .catch((e) => this.error('realtime connect failed:', lock.name, e));

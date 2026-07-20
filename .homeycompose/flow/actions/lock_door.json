@@ -1,0 +1,6 @@
+{
+  "id": "lock_door",
+  "title": { "en": "Lock the door", "ko": "문 잠그기" },
+  "hint": { "en": "Locks the linked door lock.", "ko": "연동된 도어락을 잠급니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}
