@@ -1,6 +1,7 @@
 'use strict';
 
 const { Driver } = require('homey');
+const discovery = require('../../lib/discovery');
 
 const SENSOR_CAPS = ['alarm_motion', 'alarm_contact', 'alarm_generic'];
 
@@ -27,10 +28,48 @@ class SmartDoorDriver extends Driver {
     await this.motionTrigger.trigger(device).catch(this.error);
   }
 
-  /** Pairing: expose device lists to the custom configure view. */
+  /** Pairing: expose device lists + camera discovery to the configure view. */
   onPair(session) {
     session.setHandler('listLocks', async () => this.listByCapabilities(['locked']));
     session.setHandler('listSensors', async () => this.listByCapabilities(SENSOR_CAPS));
+    session.setHandler('discoverCameras', async () => this.discoverCameras());
+    session.setHandler('resolveStreamUri', async (data) => discovery.getRtspUri(data));
+  }
+
+  /** Local /24 subnet prefix, e.g. "192.168.1", from Homey's local address. */
+  async localSubnet24() {
+    try {
+      const addr = await this.homey.cloud.getLocalAddress();
+      const ip = String(addr).split(':')[0];
+      const m = ip.match(/^(\d+\.\d+\.\d+)\.\d+$/);
+      return m ? m[1] : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** Discover RTSP cameras: ONVIF WS-Discovery + a 554/8554 port scan fallback. */
+  async discoverCameras() {
+    const onvifCams = await discovery.onvifProbe(5000).catch((e) => {
+      this.error('ONVIF probe failed:', e);
+      return [];
+    });
+    const base = await this.localSubnet24();
+    const scanned = base
+      ? await discovery.scanPorts(base, [554, 8554], 400, 40).catch(() => [])
+      : [];
+
+    const map = {};
+    onvifCams.forEach((c) => {
+      map[c.ip] = { ip: c.ip, name: c.name, onvifPort: c.onvifPort, onvif: true };
+    });
+    scanned.forEach((s) => {
+      map[s.ip] = map[s.ip] || { ip: s.ip, name: `RTSP ${s.ip}`, onvif: false };
+      map[s.ip].rtspPort = map[s.ip].rtspPort || s.port;
+    });
+    const list = Object.values(map);
+    this.log(`discoverCameras -> onvif:${onvifCams.length} scan:${scanned.length} total:${list.length}`);
+    return list;
   }
 
   async listByCapabilities(caps) {

@@ -30,6 +30,7 @@
     "eslint-plugin-homey-app": "^1.0.2"
   },
   "dependencies": {
-    "homey-api": "^3.19.1"
+    "homey-api": "^3.19.1",
+    "onvif": "^0.7.2"
   }
 }

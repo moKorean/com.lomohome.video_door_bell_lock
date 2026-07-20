@@ -28,6 +28,56 @@
     }
   }
 
+  async function searchCameras() {
+    setStatus('Searching the local network for cameras… (this takes a few seconds)');
+    document.getElementById('results').innerHTML = '';
+    try {
+      const cams = (await Homey.emit('discoverCameras')) || [];
+      if (!cams.length) { setStatus('No cameras found. Enter the RTSP URL manually below.'); return; }
+      setStatus('Found ' + cams.length + ' candidate(s). Pick one to fill in a camera.');
+      const box = document.getElementById('results');
+      cams.forEach((c) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'homey-button-secondary-full';
+        btn.style.marginBottom = '4px';
+        btn.textContent = 'Use ' + c.name + (c.onvif ? ' (ONVIF)' : (c.rtspPort ? ' (port ' + c.rtspPort + ')' : ''));
+        btn.onclick = () => useCandidate(c);
+        box.appendChild(btn);
+      });
+    } catch (e) {
+      setStatus('Search failed: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  function fillFirstEmptyCamera(url, name) {
+    let rows = Array.from(document.querySelectorAll('#cameras .camera-row'));
+    let row = rows.find((r) => !r.querySelector('.cam-url').value.trim());
+    if (!row) { addCameraRow(); rows = Array.from(document.querySelectorAll('#cameras .camera-row')); row = rows[rows.length - 1]; }
+    if (!row) return;
+    row.querySelector('.cam-url').value = url;
+    if (name && !row.querySelector('.cam-name').value.trim()) row.querySelector('.cam-name').value = name;
+  }
+
+  async function useCandidate(c) {
+    if (c.onvif) {
+      const username = document.getElementById('ou').value.trim();
+      const password = document.getElementById('op').value;
+      setStatus('Getting RTSP URL from ' + c.ip + '…');
+      try {
+        const uri = await Homey.emit('resolveStreamUri', {
+          ip: c.ip, onvifPort: c.onvifPort, username, password,
+        });
+        if (uri) { fillFirstEmptyCamera(uri, c.ip); setStatus('RTSP URL added from ONVIF.'); } else setStatus('No RTSP URL returned; enter it manually.');
+      } catch (e) {
+        setStatus('ONVIF failed (' + (e && e.message ? e.message : e) + '). Check the ONVIF username/password, or enter the URL manually.');
+      }
+    } else {
+      fillFirstEmptyCamera('rtsp://' + c.ip + ':' + (c.rtspPort || 554) + '/', c.ip);
+      setStatus('Template added — complete the path and credentials.');
+    }
+  }
+
   function fill(id, list, optional) {
     const sel = document.getElementById(id);
     sel.innerHTML = optional ? '<option value="">—</option>' : '';
@@ -97,6 +147,14 @@
     }
   }
 </script>
+
+<div class="homey-form-group">
+  <label class="homey-form-label">Find cameras on the network</label>
+  <input class="homey-form-input" id="ou" type="text" placeholder="ONVIF username (for auto URL)" />
+  <input class="homey-form-input" id="op" type="password" placeholder="ONVIF password" />
+  <button class="homey-button-secondary-full" type="button" onclick="searchCameras()">Search cameras</button>
+  <div id="results" style="margin-top: 6px;"></div>
+</div>
 
 <div id="cameras"></div>
 <button class="homey-button-secondary-full" id="addCam" onclick="addCameraRow()">+ Add camera</button>
