@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="mdi-door" viewBox="0 0 24 24"><path d="M8,3C6.89,3 6,3.89 6,5V21H18V5C18,3.89 17.11,3 16,3H8M8,5H16V19H8V5M13,11V13H15V11H13Z" /></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960" width="960" height="960">
+<style>
+  path, rect, line, circle { fill: none; stroke: #000; stroke-linecap: round; stroke-linejoin: round; }
+  .o { stroke-width: 40; }
+  .d { stroke-width: 20; }
+  .s { stroke-width: 10; }
+</style>
+<path class="o" d="M 260 190 L 390 190 A 60 60 0 0 1 450 250 L 450 710 A 60 60 0 0 1 390 770 L 260 770 C 205 770, 140 745, 140 690 L 140 270 C 140 215, 205 190, 260 190 Z"/>
+<path class="d" d="M 246 196 C 216 206, 196 228, 196 262 L 196 698 C 196 732, 216 754, 246 764"/>
+<circle cx="323" cy="360" r="90" class="d"/>
+<circle cx="323" cy="360" r="40" class="d"/>
+<circle cx="323" cy="630" r="75" class="d"/>
+<path class="d" d="M 299 650 L 299 616 Q 299 588 323 588 Q 347 588 347 616 L 347 650 Z"/>
+<circle cx="323" cy="668" r="5" class="s"/>
+<clipPath id="handle-halo" clipPathUnits="userSpaceOnUse"><path clip-rule="evenodd" fill-rule="evenodd" d="M -200 -200 L 1200 -200 L 1200 1200 L -200 1200 Z M 860 480 L 720 480 L 699 483 L 680 491 L 663 503 L 651 520 L 643 539 L 640 560 L 643 581 L 651 600 L 663 617 L 680 629 L 699 637 L 720 640 L 860 640 L 881 637 L 900 629 L 917 617 L 929 600 L 937 581 L 940 560 L 937 539 L 929 520 L 917 503 L 900 491 L 881 483 L 860 480 Z"/></clipPath>
+<g clip-path="url(#handle-halo)"><path class="o" d="M 630 100 L 735 100 A 55 55 0 0 1 790 155 L 790 805 A 55 55 0 0 1 735 860 L 630 860 C 575 860, 515 838, 515 785 L 515 175 C 515 122, 575 100, 630 100 Z"/>
+<path class="d" d="M 622 106 C 592 114, 568 134, 568 168 L 568 792 C 568 826, 592 846, 622 854"/>
+<circle cx="620" cy="195" r="13" class="d"/>
+<circle cx="680" cy="195" r="13" class="d"/>
+<circle cx="740" cy="195" r="13" class="d"/>
+<circle cx="620" cy="270" r="13" class="d"/>
+<circle cx="680" cy="270" r="13" class="d"/>
+<circle cx="740" cy="270" r="13" class="d"/>
+<circle cx="620" cy="345" r="13" class="d"/>
+<circle cx="680" cy="345" r="13" class="d"/>
+<circle cx="740" cy="345" r="13" class="d"/>
+<path class="d" d="M 608 415 L 660 415"/>
+<path class="d" d="M 700 415 L 752 415"/></g>
+<rect x="660" y="500" width="260" height="120" rx="60" class="o"/>
+<circle cx="705" cy="560" r="12" class="s"/>
+</svg>

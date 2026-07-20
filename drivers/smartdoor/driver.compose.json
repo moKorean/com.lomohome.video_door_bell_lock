@@ -6,9 +6,9 @@
   "class": "other",
   "capabilities": [],
   "images": {
-    "small": "/drivers/smartdoor/assets/images/small.png",
-    "large": "/drivers/smartdoor/assets/images/large.png",
-    "xlarge": "/drivers/smartdoor/assets/images/xlarge.png"
+    "small": "/drivers/smartdoor/assets/images/small.jpg",
+    "large": "/drivers/smartdoor/assets/images/large.jpg",
+    "xlarge": "/drivers/smartdoor/assets/images/xlarge.jpg"
   },
   "pair": [
     {
