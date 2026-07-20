@@ -28,9 +28,8 @@ class SmartDoorDriver extends Driver {
     await this.motionTrigger.trigger(device).catch(this.error);
   }
 
-  /** Pairing: expose device lists + camera discovery to the configure view. */
-  onPair(session) {
-    this.log('[PAIR] onPair session started');
+  /** Handlers shared by pair + repair: device lists + camera discovery. */
+  registerConfigureHandlers(session) {
     session.setHandler('uilog', async (msg) => {
       this.log('[UI]', msg);
       return true;
@@ -50,6 +49,27 @@ class SmartDoorDriver extends Driver {
     session.setHandler('resolveStreamUri', async (data) => {
       this.log('[PAIR] resolveStreamUri called for', data && data.ip);
       return discovery.getRtspUri(data);
+    });
+  }
+
+  /** Pairing: expose device lists + camera discovery to the configure view. */
+  onPair(session) {
+    this.log('[PAIR] onPair session started');
+    this.registerConfigureHandlers(session);
+    // No existing config in pair mode; the view treats null as "create".
+    session.setHandler('getConfig', async () => null);
+  }
+
+  /** Repair: reconfigure an existing device using the same configure view. */
+  onRepair(session, device) {
+    this.log('[REPAIR] onRepair session started for', device.getName());
+    this.registerConfigureHandlers(session);
+    session.setHandler('getConfig', async () => device.getSettings());
+    session.setHandler('saveConfig', async (settings) => {
+      this.log('[REPAIR] saveConfig');
+      await device.setSettings(settings);
+      await device.applyConfig();
+      return true;
     });
   }
 

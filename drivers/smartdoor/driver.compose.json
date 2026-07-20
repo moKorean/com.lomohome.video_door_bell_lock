@@ -15,6 +15,11 @@
       "id": "configure"
     }
   ],
+  "repair": [
+    {
+      "id": "configure"
+    }
+  ],
   "settings": [
     {
       "type": "group",
@@ -85,18 +90,22 @@
           "id": "lock_name",
           "type": "label",
           "label": { "en": "Door Lock", "ko": "도어락" },
+          "hint": {
+            "en": "To change the linked lock or sensors, use Repair (the ⋯ menu of this device).",
+            "ko": "연동 기기(도어락·센서)를 바꾸려면 이 기기의 ⋯ 메뉴에서 '복구(Repair)'를 사용하세요."
+          },
           "value": ""
         },
         {
           "id": "doorbell_name",
           "type": "label",
-          "label": { "en": "Doorbell Sensor", "ko": "초인종 센서" },
+          "label": { "en": "Doorbell Sensor (bell press)", "ko": "초인종 센서 (벨 눌림)" },
           "value": ""
         },
         {
           "id": "motion_name",
           "type": "label",
-          "label": { "en": "Motion Sensor", "ko": "모션 센서" },
+          "label": { "en": "Motion Sensor (loitering)", "ko": "모션 센서 (서성임 감지)" },
           "value": ""
         }
       ]

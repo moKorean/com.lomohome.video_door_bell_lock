@@ -8,19 +8,31 @@ class SmartDoorDevice extends Device {
 
   async onInit() {
     this.log('Smart Door device initialized:', this.getName());
-    this.settings = this.getSettings();
     this.api = this.homey.app.api;
     this._instances = [];
+    await this.applyConfig();
+  }
 
-    // UI adapts to what is linked: only add the capabilities that apply.
+  /**
+   * (Re)apply the current settings: adapt the UI (capabilities), (re)register the
+   * cameras, and (re)subscribe to the linked lock/sensors. Safe to call again
+   * after settings change (device settings or a repair flow).
+   */
+  async applyConfig() {
+    this.settings = this.getSettings();
     await this.syncCapabilities();
+    this.ensureLockListener();
+    await this.setupVideos();
+    this.destroyInstances();
+    await this.setupLinkedDevices();
+  }
 
+  ensureLockListener() {
+    if (this._lockListener) return;
     if (this.hasCapability('locked')) {
       this.registerCapabilityListener('locked', async (value) => this.setLock(value));
+      this._lockListener = true;
     }
-
-    await this.setupVideos();
-    await this.setupLinkedDevices();
   }
 
   // ---- Dynamic UI (capabilities per configuration) --------------------------
@@ -67,26 +79,36 @@ class SmartDoorDevice extends Device {
       this.error('Videos API not available; a newer Homey firmware is required for RTSP streaming');
       return;
     }
+    this._videos = this._videos || {};
     const active = this.cameraList();
     const activeIds = new Set(active.map((c) => c.id));
 
     // Remove cameras that are no longer configured
-    for (const id of this._videoIds || []) {
-      if (!activeIds.has(id) && typeof this.unsetCameraVideo === 'function') {
-        await this.unsetCameraVideo(id).catch(() => {});
+    for (const id of Object.keys(this._videos)) {
+      if (!activeIds.has(id)) {
+        if (typeof this.unsetCameraVideo === 'function') await this.unsetCameraVideo(id).catch(() => {});
+        try { await this._videos[id].unregister(); } catch (e) { /* ignore */ }
+        delete this._videos[id];
       }
     }
 
     for (const cam of active) {
       try {
-        const video = await videos.createVideoRTSP({ url: cam.url });
+        // Recreate so a changed URL/label is picked up.
+        if (this._videos[cam.id]) {
+          try { await this._videos[cam.id].unregister(); } catch (e) { /* ignore */ }
+        }
+        const url = cam.url;
+        const video = await videos.createVideoRTSP();
+        // Homey requests the stream URL on demand via this listener.
+        video.registerVideoUrlListener(async () => ({ url }));
         await this.setCameraVideo(cam.id, cam.label, video);
+        this._videos[cam.id] = video;
         this.log(`RTSP video registered: ${cam.id} (${cam.label})`);
       } catch (error) {
         this.error(`Failed to set up video ${cam.id}:`, error);
       }
     }
-    this._videoIds = active.map((c) => c.id);
   }
 
   /** Flow action: capture a still snapshot.
@@ -169,17 +191,11 @@ class SmartDoorDevice extends Device {
     this._instances = [];
   }
 
-  async onSettings({ newSettings, changedKeys }) {
-    this.settings = newSettings;
-    this.homey.setTimeout(async () => {
-      try {
-        await this.syncCapabilities();
-        await this.setupVideos();
-        this.destroyInstances();
-        await this.setupLinkedDevices();
-      } catch (err) {
-        this.error('Failed to apply settings:', err);
-      }
+  async onSettings({ newSettings }) {
+    // getSettings() is not updated until this handler resolves, so re-apply on
+    // the next tick once the new values are committed.
+    this.homey.setTimeout(() => {
+      this.applyConfig().catch((err) => this.error('Failed to apply settings:', err));
     }, 500);
   }
 

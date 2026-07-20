@@ -2,6 +2,7 @@
   var H = null;
   var started = false;
   var MAX_CAMERAS = 4;
+  var repairMode = false;
 
   function init(homeyObj) {
     if (started) return;
@@ -15,7 +16,44 @@
     setStatus('Initializing…');
     try { addCameraRow(); } catch (e) { uilog('addCameraRow error: ' + e); }
     try { wireButtons(); } catch (e) { uilog('wireButtons error: ' + e); }
-    loadDevices();
+    bootstrap();
+  }
+
+  async function bootstrap() {
+    await loadDevices();
+    try {
+      var cfg = await H.emit('getConfig');
+      if (cfg) applyConfigToForm(cfg);
+    } catch (e) { uilog('getConfig error: ' + (e && e.message ? e.message : e)); }
+  }
+
+  // Repair mode: pre-fill the form with the device's current configuration.
+  function applyConfigToForm(cfg) {
+    repairMode = true;
+    var slots = [
+      ['rtsp_url', 'camera_name'], ['rtsp_url_2', 'camera_name_2'],
+      ['rtsp_url_3', 'camera_name_3'], ['rtsp_url_4', 'camera_name_4'],
+    ];
+    var cams = [];
+    slots.forEach(function (k) {
+      var u = (cfg[k[0]] || '').trim();
+      if (u) cams.push({ url: u, name: (cfg[k[1]] || '').trim() });
+    });
+    if (cams.length) {
+      document.getElementById('cameras').innerHTML = '';
+      cams.forEach(function (c) {
+        addCameraRow();
+        var rows = document.querySelectorAll('#cameras .camera-row');
+        var row = rows[rows.length - 1];
+        row.querySelector('.cam-url').value = c.url;
+        row.querySelector('.cam-name').value = c.name;
+      });
+    }
+    if (cfg.lock_id) document.getElementById('lock').value = cfg.lock_id;
+    if (cfg.doorbell_id) document.getElementById('doorbell').value = cfg.doorbell_id;
+    if (cfg.motion_id) document.getElementById('motion').value = cfg.motion_id;
+    document.getElementById('addDevice').textContent = 'Save changes';
+    setStatus('Editing this device — change cameras or linked devices, then Save.');
   }
 
   // Trigger init via every available mechanism (contract varies by version).
@@ -160,6 +198,12 @@
       doorbell_name: nameOf('doorbell'),
       motion_name: nameOf('motion'),
     };
+    // Clear all camera slots first so removed cameras don't linger.
+    for (var i = 0; i < MAX_CAMERAS; i++) {
+      var suf = i === 0 ? '' : '_' + (i + 1);
+      settings['rtsp_url' + suf] = '';
+      settings['camera_name' + suf] = '';
+    }
     cams.forEach(function (c, i) {
       var suffix = i === 0 ? '' : '_' + (i + 1);
       settings['rtsp_url' + suffix] = c.url;
@@ -168,7 +212,11 @@
 
     H.showLoadingOverlay();
     try {
-      await H.createDevice({ name: cams[0].name || 'Smart Door', data: { id: 'smartdoor-' + Date.now() }, settings: settings });
+      if (repairMode) {
+        await H.emit('saveConfig', settings);
+      } else {
+        await H.createDevice({ name: cams[0].name || 'Smart Door', data: { id: 'smartdoor-' + Date.now() }, settings: settings });
+      }
       await H.done();
     } catch (e) {
       H.hideLoadingOverlay();
@@ -198,11 +246,11 @@
   <select class="homey-form-select" id="lock"></select>
 </div>
 <div class="homey-form-group">
-  <label class="homey-form-label" for="doorbell">Doorbell sensor (optional)</label>
+  <label class="homey-form-label" for="doorbell">Doorbell sensor · 초인종 (벨 눌림) — optional</label>
   <select class="homey-form-select" id="doorbell"></select>
 </div>
 <div class="homey-form-group">
-  <label class="homey-form-label" for="motion">Motion sensor (optional)</label>
+  <label class="homey-form-label" for="motion">Motion sensor · 모션 (서성임 감지) — optional</label>
   <select class="homey-form-select" id="motion"></select>
 </div>
 
