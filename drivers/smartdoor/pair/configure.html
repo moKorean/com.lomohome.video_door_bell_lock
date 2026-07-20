@@ -1,88 +1,70 @@
 <script type="text/javascript">
-  let Homey;
-  const MAX_CAMERAS = 4;
+  var H = null;
+  var started = false;
+  var MAX_CAMERAS = 4;
 
-  function onHomeyReady(homeyReady) {
-    Homey = homeyReady;
-    Homey.setTitle({ en: 'Set up Smart Door', ko: '스마트 도어 설정' });
-    addCameraRow();
+  function init(homeyObj) {
+    if (started) return;
+    var ref = homeyObj || (typeof Homey !== 'undefined' ? Homey : null);
+    if (!ref) return;                              // Homey object not ready yet
+    if (!document.getElementById('cameras')) return; // DOM not ready yet
+    started = true;
+    H = ref;
+    try { H.ready(); } catch (e) { /* ignore */ }
+    uilog('boot: init ok');
+    setStatus('Initializing…');
+    try { addCameraRow(); } catch (e) { uilog('addCameraRow error: ' + e); }
+    try { wireButtons(); } catch (e) { uilog('wireButtons error: ' + e); }
     loadDevices();
-    Homey.ready();
+  }
+
+  // Trigger init via every available mechanism (contract varies by version).
+  function onHomeyReady(homeyObj) { init(homeyObj); }
+  document.addEventListener('DOMContentLoaded', function () { init(); });
+  window.addEventListener('load', function () { init(); });
+  (function poll(n) {
+    if (started) return;
+    init();
+    if (n > 0) setTimeout(function () { poll(n - 1); }, 100);
+  })(60);
+
+  function uilog(msg) {
+    try { if (H && H.emit) H.emit('uilog', String(msg)); } catch (e) { /* ignore */ }
   }
 
   function setStatus(msg) {
-    document.getElementById('status').textContent = msg || '';
+    var el = document.getElementById('status');
+    if (el) el.textContent = msg || '';
+  }
+
+  function wireButtons() {
+    document.getElementById('searchBtn').addEventListener('click', searchCameras);
+    document.getElementById('addCam').addEventListener('click', addCameraRow);
+    document.getElementById('addDevice').addEventListener('click', pair);
   }
 
   async function loadDevices() {
     setStatus('Loading devices…');
+    uilog('loadDevices: calling listLocks/listSensors');
     try {
-      const locks = (await Homey.emit('listLocks')) || [];
-      const sensors = (await Homey.emit('listSensors')) || [];
+      var locks = (await H.emit('listLocks')) || [];
+      var sensors = (await H.emit('listSensors')) || [];
+      uilog('loadDevices: ' + locks.length + ' locks, ' + sensors.length + ' sensors');
       fill('lock', locks, true);
       fill('doorbell', sensors, true);
       fill('motion', sensors, true);
       setStatus('Found ' + locks.length + ' lock(s), ' + sensors.length + ' sensor(s).');
     } catch (e) {
-      setStatus('Could not load devices: ' + (e && e.message ? e.message : e) + ' — you can still enter the RTSP URL and retry.');
-    }
-  }
-
-  async function searchCameras() {
-    setStatus('Searching the local network for cameras… (this takes a few seconds)');
-    document.getElementById('results').innerHTML = '';
-    try {
-      const cams = (await Homey.emit('discoverCameras')) || [];
-      if (!cams.length) { setStatus('No cameras found. Enter the RTSP URL manually below.'); return; }
-      setStatus('Found ' + cams.length + ' candidate(s). Pick one to fill in a camera.');
-      const box = document.getElementById('results');
-      cams.forEach((c) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'homey-button-secondary-full';
-        btn.style.marginBottom = '4px';
-        btn.textContent = 'Use ' + c.name + (c.onvif ? ' (ONVIF)' : (c.rtspPort ? ' (port ' + c.rtspPort + ')' : ''));
-        btn.onclick = () => useCandidate(c);
-        box.appendChild(btn);
-      });
-    } catch (e) {
-      setStatus('Search failed: ' + (e && e.message ? e.message : e));
-    }
-  }
-
-  function fillFirstEmptyCamera(url, name) {
-    let rows = Array.from(document.querySelectorAll('#cameras .camera-row'));
-    let row = rows.find((r) => !r.querySelector('.cam-url').value.trim());
-    if (!row) { addCameraRow(); rows = Array.from(document.querySelectorAll('#cameras .camera-row')); row = rows[rows.length - 1]; }
-    if (!row) return;
-    row.querySelector('.cam-url').value = url;
-    if (name && !row.querySelector('.cam-name').value.trim()) row.querySelector('.cam-name').value = name;
-  }
-
-  async function useCandidate(c) {
-    if (c.onvif) {
-      const username = document.getElementById('ou').value.trim();
-      const password = document.getElementById('op').value;
-      setStatus('Getting RTSP URL from ' + c.ip + '…');
-      try {
-        const uri = await Homey.emit('resolveStreamUri', {
-          ip: c.ip, onvifPort: c.onvifPort, username, password,
-        });
-        if (uri) { fillFirstEmptyCamera(uri, c.ip); setStatus('RTSP URL added from ONVIF.'); } else setStatus('No RTSP URL returned; enter it manually.');
-      } catch (e) {
-        setStatus('ONVIF failed (' + (e && e.message ? e.message : e) + '). Check the ONVIF username/password, or enter the URL manually.');
-      }
-    } else {
-      fillFirstEmptyCamera('rtsp://' + c.ip + ':' + (c.rtspPort || 554) + '/', c.ip);
-      setStatus('Template added — complete the path and credentials.');
+      uilog('loadDevices error: ' + (e && e.message ? e.message : e));
+      setStatus('Could not load devices: ' + (e && e.message ? e.message : e));
     }
   }
 
   function fill(id, list, optional) {
-    const sel = document.getElementById(id);
+    var sel = document.getElementById(id);
     sel.innerHTML = optional ? '<option value="">—</option>' : '';
-    (list || []).forEach((d) => {
-      const o = document.createElement('option');
+    (list || []).forEach(function (d) {
+      var o = document.createElement('option');
       o.value = d.id;
       o.textContent = d.name;
       sel.appendChild(o);
@@ -90,7 +72,7 @@
   }
 
   function nameOf(id) {
-    const sel = document.getElementById(id);
+    var sel = document.getElementById(id);
     return sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '';
   }
 
@@ -99,9 +81,9 @@
   }
 
   function addCameraRow() {
-    const n = cameraCount() + 1;
+    var n = cameraCount() + 1;
     if (n > MAX_CAMERAS) return;
-    const wrap = document.createElement('div');
+    var wrap = document.createElement('div');
     wrap.className = 'camera-row homey-form-group';
     wrap.innerHTML =
       '<label class="homey-form-label">Camera ' + n + (n === 1 ? ' (required)' : ' (optional)') + '</label>'
@@ -111,15 +93,65 @@
     document.getElementById('addCam').disabled = cameraCount() >= MAX_CAMERAS;
   }
 
-  async function pair() {
-    const rows = Array.from(document.querySelectorAll('#cameras .camera-row'));
-    const cams = rows.map((r) => ({
-      name: r.querySelector('.cam-name').value.trim(),
-      url: r.querySelector('.cam-url').value.trim(),
-    }));
-    if (!cams[0] || !cams[0].url) { Homey.alert('Please enter the RTSP URL for Camera 1.'); return; }
+  function fillFirstEmptyCamera(url, name) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row'));
+    var row = rows.filter(function (r) { return !r.querySelector('.cam-url').value.trim(); })[0];
+    if (!row) { addCameraRow(); rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row')); row = rows[rows.length - 1]; }
+    if (!row) return;
+    row.querySelector('.cam-url').value = url;
+    if (name && !row.querySelector('.cam-name').value.trim()) row.querySelector('.cam-name').value = name;
+  }
 
-    const settings = {
+  async function searchCameras() {
+    setStatus('Searching the local network for cameras… (a few seconds)');
+    document.getElementById('results').innerHTML = '';
+    uilog('searchCameras: calling discoverCameras');
+    try {
+      var cams = (await H.emit('discoverCameras')) || [];
+      uilog('searchCameras: ' + cams.length + ' candidates');
+      if (!cams.length) { setStatus('No cameras found. Enter the RTSP URL manually.'); return; }
+      setStatus('Found ' + cams.length + ' candidate(s). Pick one.');
+      var box = document.getElementById('results');
+      cams.forEach(function (c) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'homey-button-secondary-full';
+        btn.style.marginBottom = '4px';
+        btn.textContent = 'Use ' + c.name + (c.onvif ? ' (ONVIF)' : (c.rtspPort ? ' (port ' + c.rtspPort + ')' : ''));
+        btn.addEventListener('click', function () { useCandidate(c); });
+        box.appendChild(btn);
+      });
+    } catch (e) {
+      uilog('searchCameras error: ' + (e && e.message ? e.message : e));
+      setStatus('Search failed: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  async function useCandidate(c) {
+    if (c.onvif) {
+      var username = document.getElementById('ou').value.trim();
+      var password = document.getElementById('op').value;
+      setStatus('Getting RTSP URL from ' + c.ip + '…');
+      try {
+        var uri = await H.emit('resolveStreamUri', { ip: c.ip, onvifPort: c.onvifPort, username: username, password: password });
+        if (uri) { fillFirstEmptyCamera(uri, c.ip); setStatus('RTSP URL added from ONVIF.'); } else setStatus('No RTSP URL returned; enter manually.');
+      } catch (e) {
+        setStatus('ONVIF failed (' + (e && e.message ? e.message : e) + '). Check credentials or enter manually.');
+      }
+    } else {
+      fillFirstEmptyCamera('rtsp://' + c.ip + ':' + (c.rtspPort || 554) + '/', c.ip);
+      setStatus('Template added — complete the path and credentials.');
+    }
+  }
+
+  async function pair() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row'));
+    var cams = rows.map(function (r) {
+      return { name: r.querySelector('.cam-name').value.trim(), url: r.querySelector('.cam-url').value.trim() };
+    });
+    if (!cams[0] || !cams[0].url) { H.alert('Please enter the RTSP URL for Camera 1.'); return; }
+
+    var settings = {
       lock_id: document.getElementById('lock').value,
       doorbell_id: document.getElementById('doorbell').value,
       motion_id: document.getElementById('motion').value,
@@ -127,23 +159,19 @@
       doorbell_name: nameOf('doorbell'),
       motion_name: nameOf('motion'),
     };
-    cams.forEach((c, i) => {
-      const suffix = i === 0 ? '' : '_' + (i + 1);
+    cams.forEach(function (c, i) {
+      var suffix = i === 0 ? '' : '_' + (i + 1);
       settings['rtsp_url' + suffix] = c.url;
       settings['camera_name' + suffix] = c.name;
     });
 
-    Homey.showLoadingOverlay();
+    H.showLoadingOverlay();
     try {
-      await Homey.createDevice({
-        name: cams[0].name || 'Smart Door',
-        data: { id: 'smartdoor-' + Date.now() },
-        settings,
-      });
-      await Homey.done();
+      await H.createDevice({ name: cams[0].name || 'Smart Door', data: { id: 'smartdoor-' + Date.now() }, settings: settings });
+      await H.done();
     } catch (e) {
-      Homey.hideLoadingOverlay();
-      Homey.alert(e && e.message ? e.message : String(e));
+      H.hideLoadingOverlay();
+      H.alert(e && e.message ? e.message : String(e));
     }
   }
 </script>
@@ -152,12 +180,12 @@
   <label class="homey-form-label">Find cameras on the network</label>
   <input class="homey-form-input" id="ou" type="text" placeholder="ONVIF username (for auto URL)" />
   <input class="homey-form-input" id="op" type="password" placeholder="ONVIF password" />
-  <button class="homey-button-secondary-full" type="button" onclick="searchCameras()">Search cameras</button>
+  <button class="homey-button-secondary-full" type="button" id="searchBtn">Search cameras</button>
   <div id="results" style="margin-top: 6px;"></div>
 </div>
 
 <div id="cameras"></div>
-<button class="homey-button-secondary-full" id="addCam" onclick="addCameraRow()">+ Add camera</button>
+<button class="homey-button-secondary-full" type="button" id="addCam">+ Add camera</button>
 
 <div class="homey-form-group">
   <label class="homey-form-label" for="lock">Door lock (optional)</label>
@@ -174,4 +202,4 @@
 
 <p id="status" style="font-size: 0.8em; opacity: 0.7;"></p>
 
-<button class="homey-button-primary-full" onclick="pair()">Add device</button>
+<button class="homey-button-primary-full" type="button" id="addDevice">Add device</button>

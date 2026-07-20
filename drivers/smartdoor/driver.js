@@ -30,10 +30,27 @@ class SmartDoorDriver extends Driver {
 
   /** Pairing: expose device lists + camera discovery to the configure view. */
   onPair(session) {
-    session.setHandler('listLocks', async () => this.listByCapabilities(['locked']));
-    session.setHandler('listSensors', async () => this.listByCapabilities(SENSOR_CAPS));
-    session.setHandler('discoverCameras', async () => this.discoverCameras());
-    session.setHandler('resolveStreamUri', async (data) => discovery.getRtspUri(data));
+    this.log('[PAIR] onPair session started');
+    session.setHandler('uilog', async (msg) => {
+      this.log('[UI]', msg);
+      return true;
+    });
+    session.setHandler('listLocks', async () => {
+      this.log('[PAIR] listLocks called');
+      return this.listByCapabilities(['locked']);
+    });
+    session.setHandler('listSensors', async () => {
+      this.log('[PAIR] listSensors called');
+      return this.listByCapabilities(SENSOR_CAPS);
+    });
+    session.setHandler('discoverCameras', async () => {
+      this.log('[PAIR] discoverCameras called');
+      return this.discoverCameras();
+    });
+    session.setHandler('resolveStreamUri', async (data) => {
+      this.log('[PAIR] resolveStreamUri called for', data && data.ip);
+      return discovery.getRtspUri(data);
+    });
   }
 
   /** Local /24 subnet prefix, e.g. "192.168.1", from Homey's local address. */
