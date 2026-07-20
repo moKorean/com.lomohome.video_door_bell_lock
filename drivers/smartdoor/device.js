@@ -40,9 +40,11 @@ class SmartDoorDevice extends Device {
   async syncCapabilities() {
     // uiQuickAction surfaces the lock as a quick-toggle button on the device tile.
     await this._syncCap('locked', !!this.settings.lock_id, { uiQuickAction: true });
-    // Read-only mirror so the lock state can be picked as a tile indicator
-    // (the settable `locked` control is not offered as an indicator).
-    await this._syncCap('door_locked', !!this.settings.lock_id, null);
+    // Migrate away from the old, non-indicator-eligible mirror.
+    await this._syncCap('door_locked', false, null);
+    // Only alarm_ booleans are eligible as tile indicators, so expose the lock
+    // state as "unlocked" (on = door not locked → shows as a warning indicator).
+    await this._syncCap('alarm_unlocked', !!this.settings.lock_id, null);
     await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { title: { en: 'Doorbell', ko: '초인종' } });
     await this._syncCap('alarm_motion', !!this.settings.motion_id, { title: { en: 'Motion', ko: '모션' } });
   }
@@ -142,7 +144,7 @@ class SmartDoorDevice extends Device {
       if (lock && lock.capabilities.includes('locked')) {
         const mirror = (v) => {
           this.setCapabilityValue('locked', v).catch(this.error);
-          if (this.hasCapability('door_locked')) this.setCapabilityValue('door_locked', v).catch(this.error);
+          if (this.hasCapability('alarm_unlocked')) this.setCapabilityValue('alarm_unlocked', !v).catch(this.error);
         };
         const current = lock.capabilitiesObj && lock.capabilitiesObj.locked;
         if (current && typeof current.value === 'boolean') mirror(current.value);

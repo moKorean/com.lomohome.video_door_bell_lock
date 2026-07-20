@@ -316,6 +316,24 @@
     }
   ],
   "capabilities": {
+    "alarm_unlocked": {
+      "type": "boolean",
+      "title": {
+        "en": "Unlocked",
+        "ko": "잠금 해제"
+      },
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Unlocked",
+        "ko": "잠금 해제됨"
+      },
+      "insightsTitleFalse": {
+        "en": "Locked",
+        "ko": "잠김"
+      }
+    },
     "door_locked": {
       "type": "boolean",
       "title": {
