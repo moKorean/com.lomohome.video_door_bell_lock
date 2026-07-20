@@ -149,6 +149,9 @@ class SmartDoorDevice extends Device {
         const current = lock.capabilitiesObj && lock.capabilitiesObj.locked;
         if (current && typeof current.value === 'boolean') mirror(current.value);
         this._instances.push(lock.makeCapabilityInstance('locked', (value) => mirror(value === true)));
+        await lock.connect()
+          .then(() => this.log(`Subscribed to locked of ${lock.name} (realtime)`))
+          .catch((e) => this.error('realtime connect failed:', lock.name, e));
       } else {
         this.error('Mapped lock not found or has no locked capability');
       }
@@ -188,12 +191,18 @@ class SmartDoorDevice extends Device {
     const current = dev.capabilitiesObj && dev.capabilitiesObj[cap];
     if (current && typeof current.value === 'boolean') apply(current.value);
 
-    this._instances.push(dev.makeCapabilityInstance(cap, (value) => {
+    const inst = dev.makeCapabilityInstance(cap, (value) => {
       const on = value === true;
       apply(on);
       onActive(on);
-    }));
-    this.log(`Subscribed to ${cap} of ${dev.name} -> ${targetCap}`);
+    });
+    this._instances.push(inst);
+    // makeCapabilityInstance connects lazily and swallows errors; await it so the
+    // realtime subscription is actually established (otherwise updates fall back
+    // to slow polling) and any failure is logged.
+    await dev.connect()
+      .then(() => this.log(`Subscribed to ${cap} of ${dev.name} -> ${targetCap} (realtime)`))
+      .catch((e) => this.error('realtime connect failed:', dev.name, e));
   }
 
   async setLock(value) {
