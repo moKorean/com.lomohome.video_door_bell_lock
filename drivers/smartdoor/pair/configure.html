@@ -6,21 +6,25 @@
     Homey = homeyReady;
     Homey.setTitle({ en: 'Set up Smart Door', ko: '스마트 도어 설정' });
     addCameraRow();
-    init();
+    loadDevices();
     Homey.ready();
   }
 
-  async function init() {
+  function setStatus(msg) {
+    document.getElementById('status').textContent = msg || '';
+  }
+
+  async function loadDevices() {
+    setStatus('Loading devices…');
     try {
-      const [locks, sensors] = await Promise.all([
-        Homey.emit('listLocks'),
-        Homey.emit('listSensors'),
-      ]);
+      const locks = (await Homey.emit('listLocks')) || [];
+      const sensors = (await Homey.emit('listSensors')) || [];
       fill('lock', locks, true);
       fill('doorbell', sensors, true);
       fill('motion', sensors, true);
+      setStatus('Found ' + locks.length + ' lock(s), ' + sensors.length + ' sensor(s).');
     } catch (e) {
-      // Devices could not be listed; the RTSP URL can still be entered.
+      setStatus('Could not load devices: ' + (e && e.message ? e.message : e) + ' — you can still enter the RTSP URL and retry.');
     }
   }
 
@@ -79,12 +83,10 @@
       settings['camera_name' + suffix] = c.name;
     });
 
-    const deviceName = (cams[0].name || 'Smart Door');
-
     Homey.showLoadingOverlay();
     try {
       await Homey.createDevice({
-        name: deviceName,
+        name: cams[0].name || 'Smart Door',
         data: { id: 'smartdoor-' + Date.now() },
         settings,
       });
@@ -103,15 +105,15 @@
   <label class="homey-form-label" for="lock">Door lock (optional)</label>
   <select class="homey-form-select" id="lock"></select>
 </div>
-
 <div class="homey-form-group">
   <label class="homey-form-label" for="doorbell">Doorbell sensor (optional)</label>
   <select class="homey-form-select" id="doorbell"></select>
 </div>
-
 <div class="homey-form-group">
   <label class="homey-form-label" for="motion">Motion sensor (optional)</label>
   <select class="homey-form-select" id="motion"></select>
 </div>
+
+<p id="status" style="font-size: 0.8em; opacity: 0.7;"></p>
 
 <button class="homey-button-primary-full" onclick="pair()">Add device</button>

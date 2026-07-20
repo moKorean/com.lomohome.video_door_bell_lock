@@ -31,6 +31,13 @@ class VideoDoorbellLockApp extends Homey.App {
     if (this.apiRetryId) this.homey.clearTimeout(this.apiRetryId);
   }
 
+  /** Return the HomeyAPI, connecting on demand if it isn't ready yet. */
+  async getApi() {
+    if (this.api) return this.api;
+    await this.initApi();
+    return this.api;
+  }
+
   async initApi() {
     if (this.apiRetryId) this.homey.clearTimeout(this.apiRetryId);
     try {

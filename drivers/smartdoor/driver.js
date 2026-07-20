@@ -34,16 +34,18 @@ class SmartDoorDriver extends Driver {
   }
 
   async listByCapabilities(caps) {
-    const api = this.homey.app.api;
+    const api = await this.homey.app.getApi().catch(() => null);
     if (!api) {
-      this.error('Homey API not ready');
-      return [];
+      this.error('Homey API not ready while listing devices');
+      throw new Error('Homey API not ready. Please try again in a moment.');
     }
     const devices = await api.devices.getDevices();
-    return Object.values(devices)
+    const list = Object.values(devices)
       .filter((d) => Array.isArray(d.capabilities) && d.capabilities.some((c) => caps.includes(c)))
       .map((d) => ({ id: d.id, name: d.name }))
       .sort((a, b) => a.name.localeCompare(b.name));
+    this.log(`listByCapabilities(${caps.join(',')}) -> ${list.length} devices`);
+    return list;
   }
 
 }
