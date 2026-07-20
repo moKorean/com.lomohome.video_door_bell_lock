@@ -42,6 +42,7 @@
       motionLabel: 'Motion sensor · 모션 (loitering) — optional',
       addDevice: 'Add device',
       saveChanges: 'Save changes',
+      deviceName: 'Video Doorbell',
     },
     ko: {
       initializing: '초기화 중…',
@@ -78,6 +79,7 @@
       motionLabel: '모션 센서 (서성임 감지) — 선택',
       addDevice: '기기 추가',
       saveChanges: '변경사항 저장',
+      deviceName: '비디오 도어벨',
     },
   };
 
@@ -338,7 +340,7 @@
       if (repairMode) {
         await H.emit('saveConfig', settings);
       } else {
-        await H.createDevice({ name: cams[0].name || 'Smart Door', data: { id: 'smartdoor-' + Date.now() }, settings: settings });
+        await H.createDevice({ name: cams[0].name || t('deviceName'), data: { id: 'smartdoor-' + Date.now() }, settings: settings });
       }
       await H.done();
     } catch (e) {

@@ -1,0 +1,10 @@
+{
+  "type": "boolean",
+  "title": { "en": "Motion", "ko": "서성임 감지" },
+  "icon": "/assets/capabilities/motion-sensor.svg",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": { "en": "Detected", "ko": "감지됨" },
+  "insightsTitleFalse": { "en": "Clear", "ko": "없음" }
+}

@@ -125,8 +125,8 @@
   "drivers": [
     {
       "name": {
-        "en": "Smart Door",
-        "ko": "스마트 도어"
+        "en": "Video Doorbell",
+        "ko": "비디오 도어벨"
       },
       "class": "other",
       "capabilities": [],
@@ -296,6 +296,44 @@
     }
   ],
   "capabilities": {
+    "alarm_doorbell": {
+      "type": "boolean",
+      "title": {
+        "en": "Doorbell",
+        "ko": "초인종"
+      },
+      "icon": "/assets/capabilities/bell-ring-outline.svg",
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Ringing",
+        "ko": "울림"
+      },
+      "insightsTitleFalse": {
+        "en": "Idle",
+        "ko": "대기"
+      }
+    },
+    "alarm_loitering": {
+      "type": "boolean",
+      "title": {
+        "en": "Motion",
+        "ko": "서성임 감지"
+      },
+      "icon": "/assets/capabilities/motion-sensor.svg",
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Detected",
+        "ko": "감지됨"
+      },
+      "insightsTitleFalse": {
+        "en": "Clear",
+        "ko": "없음"
+      }
+    },
     "alarm_unlocked": {
       "type": "boolean",
       "title": {

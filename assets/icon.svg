@@ -1,5 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
-  <g transform="translate(120,120) scale(30)" fill="#FFFFFF">
-    <path d="M14 15C14 16.11 13.11 17 12 17S10 16.11 10 15 10.9 13 12 13 14 13.9 14 15M18 4V20C18 21.1 17.11 22 16 22H8C6.9 22 6 21.11 6 20V4C6 2.9 6.9 2 8 2H16C17.11 2 18 2.9 18 4M10.5 7C10.5 7.83 11.17 8.5 12 8.5S13.5 7.83 13.5 7 12.83 5.5 12 5.5 10.5 6.17 10.5 7M16 10H8V20H16V10Z" />
+  <g fill="#FFFFFF">
+    <!-- doorbell panel with lens + button cut out (brand color shows through) -->
+    <path fill-rule="evenodd" d="
+      M392,170 h176 a72,72 0 0 1 72,72 v476 a72,72 0 0 1 -72,72 h-176 a72,72 0 0 1 -72,-72 v-476 a72,72 0 0 1 72,-72 z
+      M352,350 a128,128 0 1 0 256,0 a128,128 0 1 0 -256,0 z
+      M378,650 a102,102 0 1 0 204,0 a102,102 0 1 0 -204,0 z
+    "/>
+    <!-- camera lens pupil -->
+    <circle cx="480" cy="350" r="56"/>
+    <!-- doorbell bell inside the button -->
+    <path transform="translate(402,572) scale(6.5)"
+      d="M14,20A2,2 0 0,1 12,22A2,2 0 0,1 10,20H14M12,2A1,1 0 0,1 13,3V4.08C15.84,4.56 18,7.03 18,10V16L21,19H3L6,16V10C6,7.03 8.16,4.56 11,4.08V3A1,1 0 0,1 12,2Z"/>
   </g>
 </svg>

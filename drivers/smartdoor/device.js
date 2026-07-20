@@ -45,14 +45,13 @@ class SmartDoorDevice extends Device {
     // Only alarm_ booleans are eligible as tile indicators, so expose the lock
     // state as "unlocked" (on = door not locked → shows as a warning indicator).
     await this._syncCap('alarm_unlocked', !!this.settings.lock_id, null);
-    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, {
-      title: { en: 'Doorbell', ko: '초인종' },
-      icon: '/assets/capabilities/bell-ring-outline.svg',
-    });
-    await this._syncCap('alarm_motion', !!this.settings.motion_id, {
-      title: { en: 'Motion', ko: '모션' },
-      icon: '/assets/capabilities/motion-sensor.svg',
-    });
+    // Custom alarm capabilities (icons/titles come from their definitions).
+    // System alarm_generic/alarm_motion can't have their icon overridden, so we
+    // migrate away from them to custom ones that carry the MDI icons.
+    await this._syncCap('alarm_generic', false, null);
+    await this._syncCap('alarm_motion', false, null);
+    await this._syncCap('alarm_doorbell', !!this.settings.doorbell_id, null);
+    await this._syncCap('alarm_loitering', !!this.settings.motion_id, null);
   }
 
   async _syncCap(cap, want, options) {
@@ -155,14 +154,14 @@ class SmartDoorDevice extends Device {
       }
     }
 
-    if (doorbellId && this.hasCapability('alarm_generic')) {
-      await this.subscribeAlarm(doorbellId, 'alarm_generic', (on) => {
+    if (doorbellId && this.hasCapability('alarm_doorbell')) {
+      await this.subscribeAlarm(doorbellId, 'alarm_doorbell', (on) => {
         if (on) this.driver.triggerDoorbell(this);
       });
     }
 
-    if (motionId && this.hasCapability('alarm_motion')) {
-      await this.subscribeAlarm(motionId, 'alarm_motion', (on) => {
+    if (motionId && this.hasCapability('alarm_loitering')) {
+      await this.subscribeAlarm(motionId, 'alarm_loitering', (on) => {
         if (on) this.driver.triggerMotion(this);
       });
     }
