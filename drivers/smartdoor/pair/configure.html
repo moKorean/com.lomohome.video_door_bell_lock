@@ -139,8 +139,9 @@
         setStatus('ONVIF failed (' + (e && e.message ? e.message : e) + '). Check credentials or enter manually.');
       }
     } else {
-      fillFirstEmptyCamera('rtsp://' + c.ip + ':' + (c.rtspPort || 554) + '/', c.ip);
-      setStatus('Template added — complete the path and credentials.');
+      var template = 'rtsp://<user>:<pass>@' + c.ip + ':' + (c.rtspPort || 554) + '/<path>';
+      fillFirstEmptyCamera(template, c.ip);
+      setStatus('Template added for ' + c.ip + ' — replace <user>:<pass> and <path> with your real values, e.g. rtsp://718:515@' + c.ip + ':' + (c.rtspPort || 554) + '/ch2');
     }
   }
 
@@ -186,6 +187,11 @@
 
 <div id="cameras"></div>
 <button class="homey-button-secondary-full" type="button" id="addCam">+ Add camera</button>
+<p style="font-size: 0.8em; opacity: 0.7;">
+  RTSP URL format: <code>rtsp://user:pass@ip:port/path</code><br>
+  Example: <code>rtsp://718:515@192.168.1.184:8554/ch2</code><br>
+  After "Search cameras", edit the filled-in URL to add your username, password and channel path.
+</p>
 
 <div class="homey-form-group">
   <label class="homey-form-label" for="lock">Door lock (optional)</label>
