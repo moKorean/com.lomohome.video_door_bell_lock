@@ -1,26 +1,46 @@
-# Video Doorbell Lock (비디오 초인종 도어락)
+# Smart Door (통합 스마트 도어 제어 · RTSP & Matter)
 
-Homey 앱으로 비디오 초인종과 스마트 도어락을 함께 제어합니다.
+RTSP IP 카메라(비디오 초인종 포함), 스마트 도어락, 모션·초인종 센서를 **하나의 기기 화면**으로 묶는 Homey 앱입니다. 영상·센서 상태·도어락 제어를 한 타일에서 함께 다룹니다.
 
-## 구성
+## 주요 기능
 
-- **초인종(doorbell) 드라이버**: 초인종 눌림 감지, 카메라 스냅샷/영상, 눌림 시 Flow 트리거
-- **도어락(lock) 드라이버**: 잠금/해제(`locked`), 배터리 등
+- **RTSP 라이브 영상 (다중 카메라)**: `createVideoRTSP()` + `registerVideoUrlListener()` 로 네이티브 스트리밍(클라우드/트랜스코딩 없음). 한 기기에 카메라 1~4대.
+- **네트워크 카메라 검색**: ONVIF WS-Discovery + TCP 포트 스캔(554·8554) 폴백. 후보 선택 시 편집형 RTSP 템플릿(`rtsp://<user>:<pass>@ip:port/<path>`)을 채워주고, 예시로 수정 방법을 안내.
+- **도어락 제어(선택)**: 연동한 도어락의 `locked`를 미러링하고 타일 **빠른동작 토글**(`uiQuickAction`)로 잠금/해제.
+- **센서 연동(선택)**: 초인종 센서 → `alarm_generic`, 모션 센서 → `alarm_motion`. 연동 즉시 현재 상태를 반영하고, 변화 시 Flow 트리거.
+- **동적 UI**: 연동한 기기에 따라 capability를 런타임에 추가/제거(`applyConfig`). 카메라만 있으면 영상만, 도어락·센서까지 연동하면 모두 표시.
+- **연동 기기 변경**: 페어링 후에도 **유지보수 → 수리 시도(Repair)** 로 카메라/도어락/센서를 다시 선택해 즉시 재적용.
+- **다국어(en/ko)**: 페어링·복구 화면이 Homey 언어(`i18n.getLanguage()`)를 따라 한국어/영어로 표시. 고급 설정 라벨·힌트도 en/ko.
 
-> 이 저장소는 스캐폴드 상태입니다. 실제 기기 연동(로컬/클라우드 API, 페어링 로직, 카메라 이미지 소스)은 각 드라이버의 `driver.js` / `device.js`에 구현하세요.
+## Flow 카드
 
-## 개발 메모 (Homey 앱스토어 가이드라인 요약)
+- 트리거: `doorbell_rang`(초인종 눌림), `motion_detected`(모션 감지)
+- 조건: `lock_is_locked`(잠겨 있으면)
+- 액션: `take_snapshot`(스냅샷 — 구현 예정)
 
-- **앱 이름**: 최대 4단어, 브랜드/프로토콜/회사명·"Homey" 사용 금지
-- **Description**: 앱 이름·readme와 겹치지 않는 짧은 태그라인
-- **README(.txt/.ko.txt)**: 제목·기능/Flow 목록·설치 안내·URL·마크다운 없이 1~2문단 plain text (스토어 노출). "Homey" 언급 지양
-- **앱 이미지**: 250×175 / 500×350 / 1000×700, 단색 배경 플랫 아이콘 금지 → 생동감 있는 이미지
-- **드라이버 이미지**: 75×75 / 500×500 / 1000×1000, 흰 배경 + 기기 이미지, 앱 이미지 재사용 금지
-- **아이콘**: 투명 배경 벡터 SVG(960×960 캔버스), 앱 아이콘과 드라이버 아이콘은 서로 달라야 함
-- **Flow 카드 제목**: 짧고 명확, 괄호·When/And/Then·기기명 금지 (인자는 `titleFormatted`)
-- **번역**: 영어 필수, 모든 title/label/hint는 en+ko 등 일관되게(부분 번역 금지)
-- **capability 순서 변경/추가**: 기존 기기엔 `onInit`의 `addCapability`(ensureCapabilities 패턴)로 마이그레이션 필요
-- `.DS_Store`는 `.homeyignore`/`.gitignore`로 제외
+## 페어링 / 복구
+
+- **페어링**(`drivers/smartdoor/pair/configure.html`): 카메라(이름+RTSP URL, 검색 지원)와 선택적 도어락/초인종/모션 센서를 고른 뒤 기기 생성.
+- **복구**(`drivers/smartdoor/repair/reconfigure.html`): 동일 화면에 현재 설정이 채워진 상태로 열려 변경 후 저장. repair 뷰 HTML은 반드시 `drivers/<id>/repair/` 폴더에 두어야 함(`pair/`에 두면 `unknown_error_getting_file`).
+- 두 뷰는 동일 파일이며, `getConfig` 결과(null=페어링 / 설정=복구)로 동작을 분기.
+
+## 구조
+
+- `app.js` — `homey-api` 초기화(`HomeyAPI.createAppAPI`), `getApi()` 헬퍼. 메모리 절약을 위해 `homey-api/lib/HomeyAPI/HomeyAPI` 서브모듈 사용.
+- `drivers/smartdoor/driver.js` — 페어링/복구 핸들러, 기기 목록(`homey:manager:api`), 카메라 검색, Flow 등록.
+- `drivers/smartdoor/device.js` — `applyConfig`(capability 동기화·영상 등록·센서 구독), 도어락 미러/제어, 센서 초기값 반영.
+- `lib/discovery.js` — ONVIF probe / `getRtspUri` / 포트 스캔.
+
+## 요구 사항
+
+- Homey firmware `>=12.4.0` (Videos API)
+- 권한: `homey:manager:api` (연동 기기 목록·구독·제어)
+
+## 개발 메모
+
+- `homey app run` 은 개발 브리지에서 **repair 커스텀 뷰를 서빙하지 못하는 정황**이 있어, repair 확인은 `homey app install` 정식 설치로 검증.
+- `homey app run` 은 핫리로드 안 됨 → 코드/HTML 변경 시 재시작 필요.
+- 페어링 뷰에서 `onHomeyReady` 콜백이 안 뜨는 환경 대비: onHomeyReady + DOMContentLoaded + window load + 폴링으로 부트.
 
 ## 라이선스
 
@@ -28,4 +48,4 @@ GPL-3.0-or-later
 
 ## 개발자
 
-- Geunwon Mo (mokorean@gmail.com)
+Geunwon Mo
