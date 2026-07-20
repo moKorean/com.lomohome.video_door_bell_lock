@@ -16,8 +16,17 @@ class SmartDoorDriver extends Driver {
     this.homey.flow.getConditionCard('lock_is_locked')
       .registerRunListener(async (args) => args.device.getCapabilityValue('locked') === true);
 
-    this.homey.flow.getActionCard('take_snapshot')
-      .registerRunListener(async (args) => args.device.takeSnapshot());
+    const snapshotCard = this.homey.flow.getActionCard('take_snapshot');
+    snapshotCard.registerRunListener(async (args) => {
+      const image = await args.device.takeSnapshot(args.camera && args.camera.id);
+      return { snapshot: image };
+    });
+    snapshotCard.registerArgumentAutocompleteListener('camera', async (query, args) => {
+      const cams = args.device ? args.device.cameraList() : [];
+      return cams
+        .map((c) => ({ id: c.id, name: c.label + (c.snapshotUrl ? '' : ' — no snapshot URL') }))
+        .filter((c) => !query || c.name.toLowerCase().includes(String(query).toLowerCase()));
+    });
   }
 
   async triggerDoorbell(device) {
@@ -52,6 +61,10 @@ class SmartDoorDriver extends Driver {
     session.setHandler('resolveStreamUri', async (data) => {
       this.log('[PAIR] resolveStreamUri called for', data && data.ip);
       return discovery.getRtspUri(data);
+    });
+    session.setHandler('resolveSnapshotUri', async (data) => {
+      this.log('[PAIR] resolveSnapshotUri called for', data && data.ip);
+      return discovery.getSnapshotUri(data);
     });
   }
 

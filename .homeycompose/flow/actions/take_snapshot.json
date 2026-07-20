@@ -1,6 +1,16 @@
 {
   "id": "take_snapshot",
   "title": { "en": "Take a snapshot", "ko": "스냅샷 찍기" },
-  "hint": { "en": "Captures a fresh snapshot from the RTSP stream.", "ko": "RTSP 스트림에서 새 스냅샷을 캡처합니다." },
-  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+  "titleFormatted": { "en": "Take a snapshot of [[camera]]", "ko": "[[camera]] 스냅샷 찍기" },
+  "hint": {
+    "en": "Captures a still image from the camera's snapshot URL and provides it as an image token for other cards.",
+    "ko": "카메라 스냅샷 URL에서 정지 이미지를 캡처해, 다른 카드에서 쓸 수 있는 이미지 토큰으로 제공합니다."
+  },
+  "args": [
+    { "type": "device", "name": "device", "filter": "driver_id=smartdoor" },
+    { "type": "autocomplete", "name": "camera", "title": { "en": "Camera", "ko": "카메라" } }
+  ],
+  "tokens": [
+    { "name": "snapshot", "type": "image", "title": { "en": "Snapshot", "ko": "스냅샷" } }
+  ]
 }

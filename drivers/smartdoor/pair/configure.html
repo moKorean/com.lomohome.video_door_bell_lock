@@ -33,6 +33,9 @@
       cameraReq: 'Camera {0} (required)',
       cameraOpt: 'Camera {0} (optional)',
       camNamePh: 'Name (e.g. Front Door)',
+      camSnapPh: 'Snapshot URL (JPEG, optional)',
+      gettingSnap: 'Getting snapshot URL from {0}…',
+      snapAdded: 'Snapshot URL added from ONVIF.',
       addCam: '+ Add camera',
       hint: 'RTSP URL format: <code>rtsp://user:pass@ip:port/path</code><br>'
         + 'Example: <code>rtsp://839:573@192.168.1.231:8554/ch2</code><br>'
@@ -69,6 +72,9 @@
       cameraReq: '카메라 {0} (필수)',
       cameraOpt: '카메라 {0} (선택)',
       camNamePh: '이름 (예: 현관)',
+      camSnapPh: '스냅샷 URL (JPEG, 선택)',
+      gettingSnap: '{0}에서 스냅샷 주소를 가져오는 중…',
+      snapAdded: 'ONVIF에서 스냅샷 주소를 추가했습니다.',
       addCam: '+ 카메라 추가',
       hint: 'RTSP 주소 형식: <code>rtsp://user:pass@ip:port/path</code><br>'
         + '예시: <code>rtsp://839:573@192.168.1.231:8554/ch2</code><br>'
@@ -140,13 +146,13 @@
   function applyConfigToForm(cfg) {
     repairMode = true;
     var slots = [
-      ['rtsp_url', 'camera_name'], ['rtsp_url_2', 'camera_name_2'],
-      ['rtsp_url_3', 'camera_name_3'], ['rtsp_url_4', 'camera_name_4'],
+      ['rtsp_url', 'camera_name', 'snapshot_url'], ['rtsp_url_2', 'camera_name_2', 'snapshot_url_2'],
+      ['rtsp_url_3', 'camera_name_3', 'snapshot_url_3'], ['rtsp_url_4', 'camera_name_4', 'snapshot_url_4'],
     ];
     var cams = [];
     slots.forEach(function (k) {
       var u = (cfg[k[0]] || '').trim();
-      if (u) cams.push({ url: u, name: (cfg[k[1]] || '').trim() });
+      if (u) cams.push({ url: u, name: (cfg[k[1]] || '').trim(), snap: (cfg[k[2]] || '').trim() });
     });
     if (cams.length) {
       document.getElementById('cameras').innerHTML = '';
@@ -156,6 +162,7 @@
         var row = rows[rows.length - 1];
         row.querySelector('.cam-url').value = c.url;
         row.querySelector('.cam-name').value = c.name;
+        row.querySelector('.cam-snap').value = c.snap;
       });
     }
     if (cfg.lock_id) document.getElementById('lock').value = cfg.lock_id;
@@ -244,9 +251,14 @@
     url.className = 'homey-form-input cam-url';
     url.type = 'text';
     url.placeholder = 'rtsp://user:pass@192.168.0.10:554/stream';
+    var snap = document.createElement('input');
+    snap.className = 'homey-form-input cam-snap';
+    snap.type = 'text';
+    snap.placeholder = t('camSnapPh');
     wrap.appendChild(label);
     wrap.appendChild(name);
     wrap.appendChild(url);
+    wrap.appendChild(snap);
     document.getElementById('cameras').appendChild(wrap);
     document.getElementById('addCam').disabled = cameraCount() >= MAX_CAMERAS;
   }
@@ -255,9 +267,10 @@
     var rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row'));
     var row = rows.filter(function (r) { return !r.querySelector('.cam-url').value.trim(); })[0];
     if (!row) { addCameraRow(); rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row')); row = rows[rows.length - 1]; }
-    if (!row) return;
+    if (!row) return null;
     row.querySelector('.cam-url').value = url;
     if (name && !row.querySelector('.cam-name').value.trim()) row.querySelector('.cam-name').value = name;
+    return row;
   }
 
   async function searchCameras() {
@@ -294,7 +307,17 @@
       setStatus(t('gettingUrl', c.ip));
       try {
         var uri = await H.emit('resolveStreamUri', { ip: c.ip, onvifPort: c.onvifPort, username: username, password: password });
-        if (uri) { fillFirstEmptyCamera(uri, c.ip); setStatus(t('onvifAdded')); } else setStatus(t('noUri'));
+        if (uri) {
+          var row = fillFirstEmptyCamera(uri, c.ip);
+          setStatus(t('onvifAdded'));
+          // Also try to auto-fill the still-image snapshot URL from ONVIF.
+          try {
+            setStatus(t('gettingSnap', c.ip));
+            var snapUri = await H.emit('resolveSnapshotUri', { ip: c.ip, onvifPort: c.onvifPort, username: username, password: password });
+            if (snapUri && row) { row.querySelector('.cam-snap').value = snapUri; setStatus(t('snapAdded')); }
+            else setStatus(t('onvifAdded'));
+          } catch (e2) { setStatus(t('onvifAdded')); }
+        } else setStatus(t('noUri'));
       } catch (e) {
         setStatus(t('onvifFail', (e && e.message ? e.message : e)));
       }
@@ -309,7 +332,11 @@
   async function pair() {
     var rows = Array.prototype.slice.call(document.querySelectorAll('#cameras .camera-row'));
     var cams = rows.map(function (r) {
-      return { name: r.querySelector('.cam-name').value.trim(), url: r.querySelector('.cam-url').value.trim() };
+      return {
+        name: r.querySelector('.cam-name').value.trim(),
+        url: r.querySelector('.cam-url').value.trim(),
+        snap: r.querySelector('.cam-snap').value.trim(),
+      };
     });
     if (!cams[0] || !cams[0].url) { H.alert(t('needUrl')); return; }
 
@@ -326,11 +353,13 @@
       var suf = i === 0 ? '' : '_' + (i + 1);
       settings['rtsp_url' + suf] = '';
       settings['camera_name' + suf] = '';
+      settings['snapshot_url' + suf] = '';
     }
     cams.forEach(function (c, i) {
       var suffix = i === 0 ? '' : '_' + (i + 1);
       settings['rtsp_url' + suffix] = c.url;
       settings['camera_name' + suffix] = c.name;
+      settings['snapshot_url' + suffix] = c.snap;
     });
 
     H.showLoadingOverlay();
