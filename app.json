@@ -1,0 +1,244 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.lomohome.video_door_bell_lock",
+  "version": "1.0.0",
+  "compatibility": ">=12.2.0",
+  "sdk": 3,
+  "brandColor": "#3E6AE1",
+  "name": {
+    "en": "Video Doorbell Lock",
+    "ko": "비디오 초인종 도어락"
+  },
+  "description": {
+    "en": "See who is at the door and unlock from anywhere",
+    "ko": "누가 왔는지 확인하고 어디서든 문을 여세요"
+  },
+  "category": [
+    "security"
+  ],
+  "tags": {
+    "en": [
+      "doorbell",
+      "video doorbell",
+      "lock",
+      "smart lock",
+      "door lock",
+      "camera",
+      "security"
+    ],
+    "ko": [
+      "초인종",
+      "비디오 초인종",
+      "도어락",
+      "스마트락",
+      "현관",
+      "카메라",
+      "보안"
+    ]
+  },
+  "permissions": [
+    "homey:manager:api"
+  ],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Geunwon Mo",
+    "email": "mokorean@gmail.com"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Geunwon Mo",
+        "email": "mokorean@gmail.com"
+      }
+    ]
+  },
+  "copyright": "Geunwon Mo (mokorean@gmail.com)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/moKorean/com.lomohome.video_door_bell_lock/issues"
+  },
+  "source": "https://github.com/moKorean/com.lomohome.video_door_bell_lock",
+  "flow": {
+    "triggers": [
+      {
+        "id": "doorbell_rang",
+        "title": {
+          "en": "Someone rang the doorbell",
+          "ko": "초인종이 눌리면"
+        },
+        "hint": {
+          "en": "Triggers when the linked doorbell sensor is activated.",
+          "ko": "연동된 초인종 센서가 활성화되면 실행됩니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      },
+      {
+        "id": "motion_detected",
+        "title": {
+          "en": "Motion was detected",
+          "ko": "모션이 감지되면"
+        },
+        "hint": {
+          "en": "Triggers when the linked motion sensor is activated.",
+          "ko": "연동된 모션 센서가 활성화되면 실행됩니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "lock_is_locked",
+        "title": {
+          "en": "The door !{{is|isn't}} locked",
+          "ko": "문이 !{{잠겨 있으면|잠겨 있지 않으면}}"
+        },
+        "hint": {
+          "en": "Checks whether the linked door lock is currently locked.",
+          "ko": "연동된 도어락이 현재 잠겨 있는지 확인합니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "take_snapshot",
+        "title": {
+          "en": "Take a snapshot",
+          "ko": "스냅샷 찍기"
+        },
+        "hint": {
+          "en": "Captures a fresh snapshot from the RTSP stream.",
+          "ko": "RTSP 스트림에서 새 스냅샷을 캡처합니다."
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=smartdoor"
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Smart Door",
+        "ko": "스마트 도어"
+      },
+      "class": "lock",
+      "capabilities": [
+        "locked",
+        "alarm_generic",
+        "alarm_motion"
+      ],
+      "capabilitiesOptions": {
+        "alarm_generic": {
+          "title": {
+            "en": "Doorbell",
+            "ko": "초인종"
+          }
+        },
+        "alarm_motion": {
+          "title": {
+            "en": "Motion",
+            "ko": "모션"
+          }
+        }
+      },
+      "images": {
+        "small": "/drivers/smartdoor/assets/images/small.png",
+        "large": "/drivers/smartdoor/assets/images/large.png",
+        "xlarge": "/drivers/smartdoor/assets/images/xlarge.png"
+      },
+      "pair": [
+        {
+          "id": "configure"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Camera",
+            "ko": "카메라"
+          },
+          "children": [
+            {
+              "id": "rtsp_url",
+              "type": "text",
+              "label": {
+                "en": "RTSP URL",
+                "ko": "RTSP 주소"
+              },
+              "hint": {
+                "en": "Full RTSP stream URL, e.g. rtsp://user:pass@ip:port/path",
+                "ko": "전체 RTSP 스트림 주소. 예: rtsp://user:pass@ip:port/path"
+              },
+              "value": ""
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Linked Devices",
+            "ko": "연동 기기"
+          },
+          "children": [
+            {
+              "id": "lock_name",
+              "type": "label",
+              "label": {
+                "en": "Door Lock",
+                "ko": "도어락"
+              },
+              "value": ""
+            },
+            {
+              "id": "doorbell_name",
+              "type": "label",
+              "label": {
+                "en": "Doorbell Sensor",
+                "ko": "초인종 센서"
+              },
+              "value": ""
+            },
+            {
+              "id": "motion_name",
+              "type": "label",
+              "label": {
+                "en": "Motion Sensor",
+                "ko": "모션 센서"
+              },
+              "value": ""
+            }
+          ]
+        }
+      ],
+      "id": "smartdoor"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "id": "com.lomohome.video_door_bell_lock",
+  "version": "1.0.0",
+  "compatibility": ">=12.2.0",
+  "sdk": 3,
+  "brandColor": "#3E6AE1",
+  "name": {
+    "en": "Video Doorbell Lock",
+    "ko": "비디오 초인종 도어락"
+  },
+  "description": {
+    "en": "See who is at the door and unlock from anywhere",
+    "ko": "누가 왔는지 확인하고 어디서든 문을 여세요"
+  },
+  "category": [
+    "security"
+  ],
+  "tags": {
+    "en": [
+      "doorbell",
+      "video doorbell",
+      "lock",
+      "smart lock",
+      "door lock",
+      "camera",
+      "security"
+    ],
+    "ko": [
+      "초인종",
+      "비디오 초인종",
+      "도어락",
+      "스마트락",
+      "현관",
+      "카메라",
+      "보안"
+    ]
+  },
+  "permissions": [
+    "homey:manager:api"
+  ],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Geunwon Mo",
+    "email": "mokorean@gmail.com"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Geunwon Mo",
+        "email": "mokorean@gmail.com"
+      }
+    ]
+  },
+  "copyright": "Geunwon Mo (mokorean@gmail.com)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/moKorean/com.lomohome.video_door_bell_lock/issues"
+  },
+  "source": "https://github.com/moKorean/com.lomohome.video_door_bell_lock"
+}

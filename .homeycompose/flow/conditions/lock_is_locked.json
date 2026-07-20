@@ -1,0 +1,6 @@
+{
+  "id": "lock_is_locked",
+  "title": { "en": "The door !{{is|isn't}} locked", "ko": "문이 !{{잠겨 있으면|잠겨 있지 않으면}}" },
+  "hint": { "en": "Checks whether the linked door lock is currently locked.", "ko": "연동된 도어락이 현재 잠겨 있는지 확인합니다." },
+  "args": [ { "type": "device", "name": "device", "filter": "driver_id=smartdoor" } ]
+}

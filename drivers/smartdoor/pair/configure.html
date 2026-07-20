@@ -1,0 +1,95 @@
+<script type="text/javascript">
+  let Homey;
+
+  function onHomeyReady(homeyReady) {
+    Homey = homeyReady;
+    Homey.setTitle({ en: 'Set up Smart Door', ko: '스마트 도어 설정' });
+    init();
+    Homey.ready();
+  }
+
+  async function init() {
+    try {
+      const [locks, sensors] = await Promise.all([
+        Homey.emit('listLocks'),
+        Homey.emit('listSensors'),
+      ]);
+      fill('lock', locks, false);
+      fill('doorbell', sensors, true);
+      fill('motion', sensors, true);
+    } catch (e) {
+      // Devices could not be listed; the user can still enter the RTSP URL.
+    }
+  }
+
+  function fill(id, list, optional) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = optional ? '<option value="">—</option>' : '<option value="">—</option>';
+    (list || []).forEach((d) => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      sel.appendChild(o);
+    });
+  }
+
+  function nameOf(id) {
+    const sel = document.getElementById(id);
+    return sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '';
+  }
+
+  async function pair() {
+    const name = (document.getElementById('name').value || '').trim() || 'Smart Door';
+    const rtsp = (document.getElementById('rtsp').value || '').trim();
+    const lock = document.getElementById('lock').value;
+    if (!rtsp) { Homey.alert('Please enter the RTSP URL.'); return; }
+
+    Homey.showLoadingOverlay();
+    try {
+      await Homey.createDevice({
+        name,
+        data: { id: 'smartdoor-' + Date.now() },
+        settings: {
+          rtsp_url: rtsp,
+          lock_id: lock,
+          doorbell_id: document.getElementById('doorbell').value,
+          motion_id: document.getElementById('motion').value,
+          lock_name: nameOf('lock'),
+          doorbell_name: nameOf('doorbell'),
+          motion_name: nameOf('motion'),
+        },
+      });
+      await Homey.done();
+    } catch (e) {
+      Homey.hideLoadingOverlay();
+      Homey.alert(e && e.message ? e.message : String(e));
+    }
+  }
+</script>
+
+<div class="homey-form-group">
+  <label class="homey-form-label" for="name">Camera name</label>
+  <input class="homey-form-input" id="name" type="text" placeholder="Front Door" />
+</div>
+
+<div class="homey-form-group">
+  <label class="homey-form-label" for="rtsp">RTSP URL</label>
+  <input class="homey-form-input" id="rtsp" type="text" placeholder="rtsp://user:pass@192.168.0.10:554/stream1" />
+</div>
+
+<div class="homey-form-group">
+  <label class="homey-form-label" for="lock">Door lock</label>
+  <select class="homey-form-select" id="lock"></select>
+</div>
+
+<div class="homey-form-group">
+  <label class="homey-form-label" for="doorbell">Doorbell sensor (optional)</label>
+  <select class="homey-form-select" id="doorbell"></select>
+</div>
+
+<div class="homey-form-group">
+  <label class="homey-form-label" for="motion">Motion sensor (optional)</label>
+  <select class="homey-form-select" id="motion"></select>
+</div>
+
+<button class="homey-button-primary-full" onclick="pair()">Add device</button>
