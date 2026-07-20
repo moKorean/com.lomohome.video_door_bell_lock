@@ -35,7 +35,7 @@
       camNamePh: 'Name (e.g. Front Door)',
       addCam: '+ Add camera',
       hint: 'RTSP URL format: <code>rtsp://user:pass@ip:port/path</code><br>'
-        + 'Example: <code>rtsp://718:515@192.168.1.184:8554/ch2</code><br>'
+        + 'Example: <code>rtsp://839:573@192.168.1.231:8554/ch2</code><br>'
         + 'After "Search cameras", edit the filled-in URL to add your username, password and channel path.',
       lockLabel: 'Door lock (optional)',
       doorbellLabel: 'Doorbell sensor · 초인종 (bell press) — optional',
@@ -71,7 +71,7 @@
       camNamePh: '이름 (예: 현관)',
       addCam: '+ 카메라 추가',
       hint: 'RTSP 주소 형식: <code>rtsp://user:pass@ip:port/path</code><br>'
-        + '예시: <code>rtsp://718:515@192.168.1.184:8554/ch2</code><br>'
+        + '예시: <code>rtsp://839:573@192.168.1.231:8554/ch2</code><br>'
         + '"카메라 검색" 후, 채워진 주소를 열어 사용자명·비밀번호·채널 경로를 실제 값으로 수정하세요.',
       lockLabel: '도어락 (선택)',
       doorbellLabel: '초인종 센서 (벨 눌림) — 선택',
@@ -302,7 +302,7 @@
       var port = (c.rtspPort || 554);
       var template = 'rtsp://<user>:<pass>@' + c.ip + ':' + port + '/<path>';
       fillFirstEmptyCamera(template, c.ip);
-      setStatus(t('templateAdded', c.ip, 'rtsp://718:515@' + c.ip + ':' + port + '/ch2'));
+      setStatus(t('templateAdded', c.ip, 'rtsp://839:573@' + c.ip + ':' + port + '/ch2'));
     }
   }
 
