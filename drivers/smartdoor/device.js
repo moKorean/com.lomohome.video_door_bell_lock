@@ -8,62 +8,66 @@ class SmartDoorDevice extends Device {
 
   async onInit() {
     this.log('Smart Door device initialized:', this.getName());
-    await this.ensureCapabilities();
-
     this.settings = this.getSettings();
     this.api = this.homey.app.api;
     this._instances = [];
 
-    // Bottom UI: lock/unlock button -> relay to the mapped lock device
-    this.registerCapabilityListener('locked', async (value) => this.setLock(value));
+    // UI adapts to what is linked: only add the capabilities that apply.
+    await this.syncCapabilities();
 
-    await this.setupCamera();
+    if (this.hasCapability('locked')) {
+      this.registerCapabilityListener('locked', async (value) => this.setLock(value));
+    }
+
+    await this.setupVideo();
     await this.setupLinkedDevices();
   }
 
-  /** Add capabilities added to the driver after this device was paired. */
-  async ensureCapabilities() {
-    const caps = (this.driver.manifest && this.driver.manifest.capabilities) || [];
-    for (const cap of caps) {
-      if (!this.hasCapability(cap)) {
-        await this.addCapability(cap).catch(this.error);
-      }
+  // ---- Dynamic UI (capabilities per configuration) --------------------------
+
+  async syncCapabilities() {
+    await this._syncCap('locked', !!this.settings.lock_id, null);
+    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { en: 'Doorbell', ko: '초인종' });
+    await this._syncCap('alarm_motion', !!this.settings.motion_id, { en: 'Motion', ko: '모션' });
+  }
+
+  async _syncCap(cap, want, title) {
+    const has = this.hasCapability(cap);
+    if (want && !has) {
+      await this.addCapability(cap).catch(this.error);
+      if (title) await this.setCapabilityOptions(cap, { title }).catch(this.error);
+    } else if (!want && has) {
+      await this.removeCapability(cap).catch(this.error);
     }
   }
 
-  // ---- Camera (RTSP) --------------------------------------------------------
+  // ---- Video (RTSP live stream, native — no transcoding) --------------------
 
-  async setupCamera() {
+  async setupVideo() {
     if (!this.settings.rtsp_url) {
-      this.log('No RTSP URL configured; skipping camera');
+      this.log('No RTSP URL configured; skipping video');
+      return;
+    }
+    const videos = this.homey.videos;
+    if (!videos || typeof videos.createVideoRTSP !== 'function') {
+      this.error('Videos API not available; a newer Homey firmware is required for RTSP streaming');
       return;
     }
     try {
-      this.cameraImage = await this.homey.images.createImage();
-      this.cameraImage.setStream(async (stream) => this.pipeSnapshot(stream));
-      await this.setCameraImage('rtsp', 'Live', this.cameraImage);
-      this.log('Camera image registered');
+      this.video = await videos.createVideoRTSP({ url: this.settings.rtsp_url });
+      await this.setCameraVideo('rtsp', this.getName(), this.video);
+      this.log('RTSP video registered');
     } catch (error) {
-      this.error('Failed to set up camera:', error);
+      this.error('Failed to set up RTSP video:', error);
     }
   }
 
-  /**
-   * Write a JPEG snapshot of the RTSP stream to `stream`.
-   *
-   * TODO: implement RTSP -> JPEG frame extraction from `this.settings.rtsp_url`.
-   * Homey's camera API is snapshot (image) based, so a single frame must be
-   * grabbed and piped here. This needs a transcoding step (e.g. ffmpeg) or, if
-   * the camera also exposes an HTTP snapshot endpoint, fetching that instead.
-   */
-  async pipeSnapshot(stream) {
-    throw new Error('RTSP snapshot extraction is not implemented yet');
-  }
-
-  /** Flow action: refresh the snapshot. */
+  /** Flow action: capture a still snapshot.
+   * TODO: RTSP still-image capture (the live stream works natively, but a JPEG
+   * snapshot needs a frame grab — use the camera's HTTP snapshot URL if it has
+   * one, or a transcoding step). */
   async takeSnapshot() {
-    if (!this.cameraImage) throw new Error('Camera not configured');
-    await this.cameraImage.update();
+    throw new Error('Snapshot capture is not implemented yet');
   }
 
   // ---- Linked devices (lock + sensors) via HomeyAPI -------------------------
@@ -75,8 +79,7 @@ class SmartDoorDevice extends Device {
     }
     const { lock_id: lockId, doorbell_id: doorbellId, motion_id: motionId } = this.settings;
 
-    // Door lock: mirror its state onto our `locked` capability
-    if (lockId) {
+    if (lockId && this.hasCapability('locked')) {
       const lock = await this.api.devices.getDevice({ id: lockId }).catch(() => null);
       if (lock && lock.capabilities.includes('locked')) {
         const current = lock.capabilitiesObj && lock.capabilitiesObj.locked;
@@ -91,16 +94,14 @@ class SmartDoorDevice extends Device {
       }
     }
 
-    // Doorbell sensor -> alarm_generic + flow trigger
-    if (doorbellId) {
+    if (doorbellId && this.hasCapability('alarm_generic')) {
       await this.subscribeAlarm(doorbellId, (on) => {
         this.setCapabilityValue('alarm_generic', on).catch(this.error);
         if (on) this.driver.triggerDoorbell(this);
       });
     }
 
-    // Motion sensor -> alarm_motion + flow trigger
-    if (motionId) {
+    if (motionId && this.hasCapability('alarm_motion')) {
       await this.subscribeAlarm(motionId, (on) => {
         this.setCapabilityValue('alarm_motion', on).catch(this.error);
         if (on) this.driver.triggerMotion(this);
@@ -123,7 +124,6 @@ class SmartDoorDevice extends Device {
     this.log(`Subscribed to ${cap} of ${dev.name}`);
   }
 
-  /** Relay lock/unlock to the mapped lock device. */
   async setLock(value) {
     if (!this.api || !this.settings.lock_id) {
       throw new Error('No door lock is linked');
@@ -144,10 +144,10 @@ class SmartDoorDevice extends Device {
 
   async onSettings({ newSettings, changedKeys }) {
     this.settings = newSettings;
-    // Re-wire camera / subscriptions after the handler resolves
     this.homey.setTimeout(async () => {
       try {
-        if (changedKeys.includes('rtsp_url')) await this.setupCamera();
+        await this.syncCapabilities();
+        if (changedKeys.includes('rtsp_url')) await this.setupVideo();
         this.destroyInstances();
         await this.setupLinkedDevices();
       } catch (err) {

@@ -2,7 +2,7 @@
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.lomohome.video_door_bell_lock",
   "version": "1.0.0",
-  "compatibility": ">=12.2.0",
+  "compatibility": ">=12.4.0",
   "sdk": 3,
   "brandColor": "#3E6AE1",
   "name": {
@@ -148,26 +148,8 @@
         "en": "Smart Door",
         "ko": "스마트 도어"
       },
-      "class": "lock",
-      "capabilities": [
-        "locked",
-        "alarm_generic",
-        "alarm_motion"
-      ],
-      "capabilitiesOptions": {
-        "alarm_generic": {
-          "title": {
-            "en": "Doorbell",
-            "ko": "초인종"
-          }
-        },
-        "alarm_motion": {
-          "title": {
-            "en": "Motion",
-            "ko": "모션"
-          }
-        }
-      },
+      "class": "other",
+      "capabilities": [],
       "images": {
         "small": "/drivers/smartdoor/assets/images/small.png",
         "large": "/drivers/smartdoor/assets/images/large.png",
@@ -204,8 +186,8 @@
         {
           "type": "group",
           "label": {
-            "en": "Linked Devices",
-            "ko": "연동 기기"
+            "en": "Linked Devices (optional)",
+            "ko": "연동 기기 (선택)"
           },
           "children": [
             {

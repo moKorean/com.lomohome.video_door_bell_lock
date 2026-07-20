@@ -1,7 +1,7 @@
 {
   "id": "com.lomohome.video_door_bell_lock",
   "version": "1.0.0",
-  "compatibility": ">=12.2.0",
+  "compatibility": ">=12.4.0",
   "sdk": 3,
   "brandColor": "#3E6AE1",
   "name": {
