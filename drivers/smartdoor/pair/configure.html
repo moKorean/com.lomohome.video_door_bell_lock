@@ -1,9 +1,11 @@
 <script type="text/javascript">
   let Homey;
+  const MAX_CAMERAS = 4;
 
   function onHomeyReady(homeyReady) {
     Homey = homeyReady;
     Homey.setTitle({ en: 'Set up Smart Door', ko: '스마트 도어 설정' });
+    addCameraRow();
     init();
     Homey.ready();
   }
@@ -14,17 +16,17 @@
         Homey.emit('listLocks'),
         Homey.emit('listSensors'),
       ]);
-      fill('lock', locks, false);
+      fill('lock', locks, true);
       fill('doorbell', sensors, true);
       fill('motion', sensors, true);
     } catch (e) {
-      // Devices could not be listed; the user can still enter the RTSP URL.
+      // Devices could not be listed; the RTSP URL can still be entered.
     }
   }
 
   function fill(id, list, optional) {
     const sel = document.getElementById(id);
-    sel.innerHTML = optional ? '<option value="">—</option>' : '<option value="">—</option>';
+    sel.innerHTML = optional ? '<option value="">—</option>' : '';
     (list || []).forEach((d) => {
       const o = document.createElement('option');
       o.value = d.id;
@@ -38,26 +40,53 @@
     return sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '';
   }
 
+  function cameraCount() {
+    return document.querySelectorAll('#cameras .camera-row').length;
+  }
+
+  function addCameraRow() {
+    const n = cameraCount() + 1;
+    if (n > MAX_CAMERAS) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'camera-row homey-form-group';
+    wrap.innerHTML =
+      '<label class="homey-form-label">Camera ' + n + (n === 1 ? ' (required)' : ' (optional)') + '</label>'
+      + '<input class="homey-form-input cam-name" type="text" placeholder="Name (e.g. Front Door)" />'
+      + '<input class="homey-form-input cam-url" type="text" placeholder="rtsp://user:pass@192.168.0.10:554/stream" />';
+    document.getElementById('cameras').appendChild(wrap);
+    document.getElementById('addCam').disabled = cameraCount() >= MAX_CAMERAS;
+  }
+
   async function pair() {
-    const name = (document.getElementById('name').value || '').trim() || 'Smart Door';
-    const rtsp = (document.getElementById('rtsp').value || '').trim();
-    const lock = document.getElementById('lock').value;
-    if (!rtsp) { Homey.alert('Please enter the RTSP URL.'); return; }
+    const rows = Array.from(document.querySelectorAll('#cameras .camera-row'));
+    const cams = rows.map((r) => ({
+      name: r.querySelector('.cam-name').value.trim(),
+      url: r.querySelector('.cam-url').value.trim(),
+    }));
+    if (!cams[0] || !cams[0].url) { Homey.alert('Please enter the RTSP URL for Camera 1.'); return; }
+
+    const settings = {
+      lock_id: document.getElementById('lock').value,
+      doorbell_id: document.getElementById('doorbell').value,
+      motion_id: document.getElementById('motion').value,
+      lock_name: nameOf('lock'),
+      doorbell_name: nameOf('doorbell'),
+      motion_name: nameOf('motion'),
+    };
+    cams.forEach((c, i) => {
+      const suffix = i === 0 ? '' : '_' + (i + 1);
+      settings['rtsp_url' + suffix] = c.url;
+      settings['camera_name' + suffix] = c.name;
+    });
+
+    const deviceName = (cams[0].name || 'Smart Door');
 
     Homey.showLoadingOverlay();
     try {
       await Homey.createDevice({
-        name,
+        name: deviceName,
         data: { id: 'smartdoor-' + Date.now() },
-        settings: {
-          rtsp_url: rtsp,
-          lock_id: lock,
-          doorbell_id: document.getElementById('doorbell').value,
-          motion_id: document.getElementById('motion').value,
-          lock_name: nameOf('lock'),
-          doorbell_name: nameOf('doorbell'),
-          motion_name: nameOf('motion'),
-        },
+        settings,
       });
       await Homey.done();
     } catch (e) {
@@ -67,18 +96,11 @@
   }
 </script>
 
-<div class="homey-form-group">
-  <label class="homey-form-label" for="name">Camera name</label>
-  <input class="homey-form-input" id="name" type="text" placeholder="Front Door" />
-</div>
+<div id="cameras"></div>
+<button class="homey-button-secondary-full" id="addCam" onclick="addCameraRow()">+ Add camera</button>
 
 <div class="homey-form-group">
-  <label class="homey-form-label" for="rtsp">RTSP URL</label>
-  <input class="homey-form-input" id="rtsp" type="text" placeholder="rtsp://user:pass@192.168.0.10:554/stream1" />
-</div>
-
-<div class="homey-form-group">
-  <label class="homey-form-label" for="lock">Door lock</label>
+  <label class="homey-form-label" for="lock">Door lock (optional)</label>
   <select class="homey-form-select" id="lock"></select>
 </div>
 

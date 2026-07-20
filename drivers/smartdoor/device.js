@@ -19,7 +19,7 @@ class SmartDoorDevice extends Device {
       this.registerCapabilityListener('locked', async (value) => this.setLock(value));
     }
 
-    await this.setupVideo();
+    await this.setupVideos();
     await this.setupLinkedDevices();
   }
 
@@ -43,23 +43,50 @@ class SmartDoorDevice extends Device {
 
   // ---- Video (RTSP live stream, native — no transcoding) --------------------
 
-  async setupVideo() {
-    if (!this.settings.rtsp_url) {
-      this.log('No RTSP URL configured; skipping video');
-      return;
-    }
+  /** Configured cameras (up to 4), skipping empty URL slots. */
+  cameraList() {
+    const s = this.settings;
+    const slots = [
+      { url: s.rtsp_url, label: s.camera_name },
+      { url: s.rtsp_url_2, label: s.camera_name_2 },
+      { url: s.rtsp_url_3, label: s.camera_name_3 },
+      { url: s.rtsp_url_4, label: s.camera_name_4 },
+    ];
+    return slots
+      .map((c, i) => ({
+        id: `cam${i + 1}`,
+        url: (c.url || '').trim(),
+        label: (c.label || '').trim() || `Camera ${i + 1}`,
+      }))
+      .filter((c) => c.url);
+  }
+
+  async setupVideos() {
     const videos = this.homey.videos;
     if (!videos || typeof videos.createVideoRTSP !== 'function') {
       this.error('Videos API not available; a newer Homey firmware is required for RTSP streaming');
       return;
     }
-    try {
-      this.video = await videos.createVideoRTSP({ url: this.settings.rtsp_url });
-      await this.setCameraVideo('rtsp', this.getName(), this.video);
-      this.log('RTSP video registered');
-    } catch (error) {
-      this.error('Failed to set up RTSP video:', error);
+    const active = this.cameraList();
+    const activeIds = new Set(active.map((c) => c.id));
+
+    // Remove cameras that are no longer configured
+    for (const id of this._videoIds || []) {
+      if (!activeIds.has(id) && typeof this.unsetCameraVideo === 'function') {
+        await this.unsetCameraVideo(id).catch(() => {});
+      }
     }
+
+    for (const cam of active) {
+      try {
+        const video = await videos.createVideoRTSP({ url: cam.url });
+        await this.setCameraVideo(cam.id, cam.label, video);
+        this.log(`RTSP video registered: ${cam.id} (${cam.label})`);
+      } catch (error) {
+        this.error(`Failed to set up video ${cam.id}:`, error);
+      }
+    }
+    this._videoIds = active.map((c) => c.id);
   }
 
   /** Flow action: capture a still snapshot.
@@ -147,7 +174,7 @@ class SmartDoorDevice extends Device {
     this.homey.setTimeout(async () => {
       try {
         await this.syncCapabilities();
-        if (changedKeys.includes('rtsp_url')) await this.setupVideo();
+        await this.setupVideos();
         this.destroyInstances();
         await this.setupLinkedDevices();
       } catch (err) {

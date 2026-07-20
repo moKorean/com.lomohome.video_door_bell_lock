@@ -164,7 +164,7 @@
         {
           "type": "group",
           "label": {
-            "en": "Camera",
+            "en": "Cameras",
             "ko": "카메라"
           },
           "children": [
@@ -172,12 +172,87 @@
               "id": "rtsp_url",
               "type": "text",
               "label": {
-                "en": "RTSP URL",
-                "ko": "RTSP 주소"
+                "en": "Camera 1 - RTSP URL",
+                "ko": "카메라 1 - RTSP 주소"
               },
               "hint": {
-                "en": "Full RTSP stream URL, e.g. rtsp://user:pass@ip:port/path",
-                "ko": "전체 RTSP 스트림 주소. 예: rtsp://user:pass@ip:port/path"
+                "en": "Required. Full RTSP stream URL, e.g. rtsp://user:pass@ip:port/path",
+                "ko": "필수. 전체 RTSP 스트림 주소. 예: rtsp://user:pass@ip:port/path"
+              },
+              "value": ""
+            },
+            {
+              "id": "camera_name",
+              "type": "text",
+              "label": {
+                "en": "Camera 1 - Name",
+                "ko": "카메라 1 - 이름"
+              },
+              "value": ""
+            },
+            {
+              "id": "rtsp_url_2",
+              "type": "text",
+              "label": {
+                "en": "Camera 2 - RTSP URL",
+                "ko": "카메라 2 - RTSP 주소"
+              },
+              "hint": {
+                "en": "Optional. Leave empty if unused.",
+                "ko": "선택. 사용하지 않으면 비워두세요."
+              },
+              "value": ""
+            },
+            {
+              "id": "camera_name_2",
+              "type": "text",
+              "label": {
+                "en": "Camera 2 - Name",
+                "ko": "카메라 2 - 이름"
+              },
+              "value": ""
+            },
+            {
+              "id": "rtsp_url_3",
+              "type": "text",
+              "label": {
+                "en": "Camera 3 - RTSP URL",
+                "ko": "카메라 3 - RTSP 주소"
+              },
+              "hint": {
+                "en": "Optional. Leave empty if unused.",
+                "ko": "선택. 사용하지 않으면 비워두세요."
+              },
+              "value": ""
+            },
+            {
+              "id": "camera_name_3",
+              "type": "text",
+              "label": {
+                "en": "Camera 3 - Name",
+                "ko": "카메라 3 - 이름"
+              },
+              "value": ""
+            },
+            {
+              "id": "rtsp_url_4",
+              "type": "text",
+              "label": {
+                "en": "Camera 4 - RTSP URL",
+                "ko": "카메라 4 - RTSP 주소"
+              },
+              "hint": {
+                "en": "Optional. Leave empty if unused.",
+                "ko": "선택. 사용하지 않으면 비워두세요."
+              },
+              "value": ""
+            },
+            {
+              "id": "camera_name_4",
+              "type": "text",
+              "label": {
+                "en": "Camera 4 - Name",
+                "ko": "카메라 4 - 이름"
               },
               "value": ""
             }
