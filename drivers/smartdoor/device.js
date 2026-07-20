@@ -38,18 +38,24 @@ class SmartDoorDevice extends Device {
   // ---- Dynamic UI (capabilities per configuration) --------------------------
 
   async syncCapabilities() {
-    await this._syncCap('locked', !!this.settings.lock_id, null);
-    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { en: 'Doorbell', ko: '초인종' });
-    await this._syncCap('alarm_motion', !!this.settings.motion_id, { en: 'Motion', ko: '모션' });
+    // uiQuickAction surfaces the lock as a quick-toggle button on the device tile.
+    await this._syncCap('locked', !!this.settings.lock_id, { uiQuickAction: true });
+    await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { title: { en: 'Doorbell', ko: '초인종' } });
+    await this._syncCap('alarm_motion', !!this.settings.motion_id, { title: { en: 'Motion', ko: '모션' } });
   }
 
-  async _syncCap(cap, want, title) {
+  async _syncCap(cap, want, options) {
     const has = this.hasCapability(cap);
     if (want && !has) {
       await this.addCapability(cap).catch(this.error);
-      if (title) await this.setCapabilityOptions(cap, { title }).catch(this.error);
     } else if (!want && has) {
       await this.removeCapability(cap).catch(this.error);
+      return;
+    }
+    // Apply options whenever the capability should exist (also upgrades devices
+    // paired before an option was introduced).
+    if (want && options && this.hasCapability(cap)) {
+      await this.setCapabilityOptions(cap, options).catch(this.error);
     }
   }
 
