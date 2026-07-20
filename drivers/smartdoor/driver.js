@@ -34,6 +34,9 @@ class SmartDoorDriver extends Driver {
       this.log('[UI]', msg);
       return true;
     });
+    session.setHandler('getLanguage', async () => {
+      try { return this.homey.i18n.getLanguage(); } catch (e) { return 'en'; }
+    });
     session.setHandler('listLocks', async () => {
       this.log('[PAIR] listLocks called');
       return this.listByCapabilities(['locked']);

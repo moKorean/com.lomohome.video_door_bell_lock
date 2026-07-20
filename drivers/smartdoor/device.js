@@ -144,21 +144,24 @@ class SmartDoorDevice extends Device {
     }
 
     if (doorbellId && this.hasCapability('alarm_generic')) {
-      await this.subscribeAlarm(doorbellId, (on) => {
-        this.setCapabilityValue('alarm_generic', on).catch(this.error);
+      await this.subscribeAlarm(doorbellId, 'alarm_generic', (on) => {
         if (on) this.driver.triggerDoorbell(this);
       });
     }
 
     if (motionId && this.hasCapability('alarm_motion')) {
-      await this.subscribeAlarm(motionId, (on) => {
-        this.setCapabilityValue('alarm_motion', on).catch(this.error);
+      await this.subscribeAlarm(motionId, 'alarm_motion', (on) => {
         if (on) this.driver.triggerMotion(this);
       });
     }
   }
 
-  async subscribeAlarm(deviceId, cb) {
+  /**
+   * Mirror a linked sensor's alarm onto our capability `targetCap`. The current
+   * value is applied immediately (so a reconfigured sensor shows its state right
+   * away) without firing the flow; `onActive` runs only on live changes.
+   */
+  async subscribeAlarm(deviceId, targetCap, onActive) {
     const dev = await this.api.devices.getDevice({ id: deviceId }).catch(() => null);
     if (!dev) {
       this.error('Mapped sensor not found:', deviceId);
@@ -169,8 +172,17 @@ class SmartDoorDevice extends Device {
       this.error('Mapped sensor has no supported alarm capability:', deviceId);
       return;
     }
-    this._instances.push(dev.makeCapabilityInstance(cap, (value) => cb(value === true)));
-    this.log(`Subscribed to ${cap} of ${dev.name}`);
+    const apply = (on) => this.setCapabilityValue(targetCap, on).catch(this.error);
+
+    const current = dev.capabilitiesObj && dev.capabilitiesObj[cap];
+    if (current && typeof current.value === 'boolean') apply(current.value);
+
+    this._instances.push(dev.makeCapabilityInstance(cap, (value) => {
+      const on = value === true;
+      apply(on);
+      onActive(on);
+    }));
+    this.log(`Subscribed to ${cap} of ${dev.name} -> ${targetCap}`);
   }
 
   async setLock(value) {
