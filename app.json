@@ -162,7 +162,7 @@
       ],
       "repair": [
         {
-          "id": "configure"
+          "id": "reconfigure"
         }
       ],
       "settings": [
