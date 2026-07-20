@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
-  "brandColor": "#3E6AE1",
+  "brandColor": "#FFCC00",
   "name": {
     "en": "Video Doorbell Lock",
     "ko": "비디오 초인종 도어락"
