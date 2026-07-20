@@ -314,5 +314,26 @@
       ],
       "id": "smartdoor"
     }
-  ]
+  ],
+  "capabilities": {
+    "door_locked": {
+      "type": "boolean",
+      "title": {
+        "en": "Locked",
+        "ko": "잠김"
+      },
+      "uiComponent": "sensor",
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Locked",
+        "ko": "잠김"
+      },
+      "insightsTitleFalse": {
+        "en": "Unlocked",
+        "ko": "열림"
+      }
+    }
+  }
 }

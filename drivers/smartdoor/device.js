@@ -40,6 +40,9 @@ class SmartDoorDevice extends Device {
   async syncCapabilities() {
     // uiQuickAction surfaces the lock as a quick-toggle button on the device tile.
     await this._syncCap('locked', !!this.settings.lock_id, { uiQuickAction: true });
+    // Read-only mirror so the lock state can be picked as a tile indicator
+    // (the settable `locked` control is not offered as an indicator).
+    await this._syncCap('door_locked', !!this.settings.lock_id, null);
     await this._syncCap('alarm_generic', !!this.settings.doorbell_id, { title: { en: 'Doorbell', ko: '초인종' } });
     await this._syncCap('alarm_motion', !!this.settings.motion_id, { title: { en: 'Motion', ko: '모션' } });
   }
@@ -137,13 +140,13 @@ class SmartDoorDevice extends Device {
     if (lockId && this.hasCapability('locked')) {
       const lock = await this.api.devices.getDevice({ id: lockId }).catch(() => null);
       if (lock && lock.capabilities.includes('locked')) {
+        const mirror = (v) => {
+          this.setCapabilityValue('locked', v).catch(this.error);
+          if (this.hasCapability('door_locked')) this.setCapabilityValue('door_locked', v).catch(this.error);
+        };
         const current = lock.capabilitiesObj && lock.capabilitiesObj.locked;
-        if (current && typeof current.value === 'boolean') {
-          await this.setCapabilityValue('locked', current.value).catch(this.error);
-        }
-        this._instances.push(lock.makeCapabilityInstance('locked', (value) => {
-          this.setCapabilityValue('locked', value === true).catch(this.error);
-        }));
+        if (current && typeof current.value === 'boolean') mirror(current.value);
+        this._instances.push(lock.makeCapabilityInstance('locked', (value) => mirror(value === true)));
       } else {
         this.error('Mapped lock not found or has no locked capability');
       }
