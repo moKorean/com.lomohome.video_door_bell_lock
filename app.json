@@ -120,48 +120,6 @@
           }
         ]
       }
-    ],
-    "actions": [
-      {
-        "id": "take_snapshot",
-        "title": {
-          "en": "Take a snapshot",
-          "ko": "스냅샷 찍기"
-        },
-        "titleFormatted": {
-          "en": "Take a snapshot of [[camera]]",
-          "ko": "[[camera]] 스냅샷 찍기"
-        },
-        "hint": {
-          "en": "Captures a still image from the camera's snapshot URL and provides it as an image token for other cards.",
-          "ko": "카메라 스냅샷 URL에서 정지 이미지를 캡처해, 다른 카드에서 쓸 수 있는 이미지 토큰으로 제공합니다."
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=smartdoor"
-          },
-          {
-            "type": "autocomplete",
-            "name": "camera",
-            "title": {
-              "en": "Camera",
-              "ko": "카메라"
-            }
-          }
-        ],
-        "tokens": [
-          {
-            "name": "snapshot",
-            "type": "image",
-            "title": {
-              "en": "Snapshot",
-              "ko": "스냅샷"
-            }
-          }
-        ]
-      }
     ]
   },
   "drivers": [
@@ -218,19 +176,6 @@
               "value": ""
             },
             {
-              "id": "snapshot_url",
-              "type": "text",
-              "label": {
-                "en": "Camera 1 - Snapshot URL (JPEG)",
-                "ko": "카메라 1 - 스냅샷 URL (JPEG)"
-              },
-              "hint": {
-                "en": "Optional. HTTP(S) still-image URL for the snapshot Flow action, e.g. http://user:pass@ip/snapshot.jpg. Auto-filled from ONVIF when available.",
-                "ko": "선택. 스냅샷 Flow 액션에 쓰는 HTTP(S) 정지 이미지 주소. 예: http://user:pass@ip/snapshot.jpg. ONVIF가 되면 자동으로 채워집니다."
-              },
-              "value": ""
-            },
-            {
               "id": "rtsp_url_2",
               "type": "text",
               "label": {
@@ -249,19 +194,6 @@
               "label": {
                 "en": "Camera 2 - Name",
                 "ko": "카메라 2 - 이름"
-              },
-              "value": ""
-            },
-            {
-              "id": "snapshot_url_2",
-              "type": "text",
-              "label": {
-                "en": "Camera 2 - Snapshot URL (JPEG)",
-                "ko": "카메라 2 - 스냅샷 URL (JPEG)"
-              },
-              "hint": {
-                "en": "Optional. HTTP(S) still-image URL.",
-                "ko": "선택. HTTP(S) 정지 이미지 주소."
               },
               "value": ""
             },
@@ -288,19 +220,6 @@
               "value": ""
             },
             {
-              "id": "snapshot_url_3",
-              "type": "text",
-              "label": {
-                "en": "Camera 3 - Snapshot URL (JPEG)",
-                "ko": "카메라 3 - 스냅샷 URL (JPEG)"
-              },
-              "hint": {
-                "en": "Optional. HTTP(S) still-image URL.",
-                "ko": "선택. HTTP(S) 정지 이미지 주소."
-              },
-              "value": ""
-            },
-            {
               "id": "rtsp_url_4",
               "type": "text",
               "label": {
@@ -319,19 +238,6 @@
               "label": {
                 "en": "Camera 4 - Name",
                 "ko": "카메라 4 - 이름"
-              },
-              "value": ""
-            },
-            {
-              "id": "snapshot_url_4",
-              "type": "text",
-              "label": {
-                "en": "Camera 4 - Snapshot URL (JPEG)",
-                "ko": "카메라 4 - 스냅샷 URL (JPEG)"
-              },
-              "hint": {
-                "en": "Optional. HTTP(S) still-image URL.",
-                "ko": "선택. HTTP(S) 정지 이미지 주소."
               },
               "value": ""
             }

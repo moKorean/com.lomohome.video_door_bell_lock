@@ -1,38 +1,8 @@
 'use strict';
 
-const http = require('http');
-const https = require('https');
-const { URL } = require('url');
 const { Device } = require('homey');
 
 const SENSOR_CAPS = ['alarm_motion', 'alarm_contact', 'alarm_generic'];
-
-/** Pipe an HTTP(S) JPEG/PNG snapshot into a writable stream (supports basic auth). */
-function fetchToStream(urlStr, writable, timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    let u;
-    try { u = new URL(urlStr); } catch (e) { reject(new Error('Invalid snapshot URL')); return; }
-    const mod = u.protocol === 'https:' ? https : http;
-    const options = {};
-    if (u.username || u.password) {
-      options.auth = `${decodeURIComponent(u.username)}:${decodeURIComponent(u.password)}`;
-    }
-    // Strip credentials from the URL itself so only options.auth is used.
-    const clean = `${u.protocol}//${u.host}${u.pathname}${u.search}`;
-    const req = mod.get(clean, options, (res) => {
-      if (res.statusCode !== 200) {
-        res.resume();
-        reject(new Error(`Snapshot HTTP ${res.statusCode}`));
-        return;
-      }
-      res.pipe(writable);
-      res.on('end', resolve);
-      res.on('error', reject);
-    });
-    req.on('error', reject);
-    req.setTimeout(timeout, () => req.destroy(new Error('Snapshot request timed out')));
-  });
-}
 
 class SmartDoorDevice extends Device {
 
@@ -53,7 +23,6 @@ class SmartDoorDevice extends Device {
     await this.syncCapabilities();
     this.ensureLockListener();
     await this.setupVideos();
-    await this.setupImages();
     this.destroyInstances();
     await this.setupLinkedDevices();
   }
@@ -101,17 +70,16 @@ class SmartDoorDevice extends Device {
   cameraList() {
     const s = this.settings;
     const slots = [
-      { url: s.rtsp_url, label: s.camera_name, snap: s.snapshot_url },
-      { url: s.rtsp_url_2, label: s.camera_name_2, snap: s.snapshot_url_2 },
-      { url: s.rtsp_url_3, label: s.camera_name_3, snap: s.snapshot_url_3 },
-      { url: s.rtsp_url_4, label: s.camera_name_4, snap: s.snapshot_url_4 },
+      { url: s.rtsp_url, label: s.camera_name },
+      { url: s.rtsp_url_2, label: s.camera_name_2 },
+      { url: s.rtsp_url_3, label: s.camera_name_3 },
+      { url: s.rtsp_url_4, label: s.camera_name_4 },
     ];
     return slots
       .map((c, i) => ({
         id: `cam${i + 1}`,
         url: (c.url || '').trim(),
         label: (c.label || '').trim() || `Camera ${i + 1}`,
-        snapshotUrl: (c.snap || '').trim(),
       }))
       .filter((c) => c.url);
   }
@@ -152,66 +120,6 @@ class SmartDoorDevice extends Device {
         this.error(`Failed to set up video ${cam.id}:`, error);
       }
     }
-  }
-
-  // ---- Snapshot still images (Homey Image, usable as a Flow token) ----------
-
-  /** Create/refresh the Homey Image for a camera; its source is the snapshot URL. */
-  async ensureImage(cam) {
-    this._images = this._images || {};
-    let image = this._images[cam.id];
-    if (!image) {
-      image = await this.homey.images.createImage();
-      this._images[cam.id] = image;
-    }
-    const url = cam.snapshotUrl;
-    image.setStream(async (stream) => { await fetchToStream(url, stream); });
-    return image;
-  }
-
-  /** Register a snapshot Image (and tile thumbnail) for every camera that has a URL. */
-  async setupImages() {
-    if (!this.homey.images || typeof this.homey.images.createImage !== 'function') return;
-    this._images = this._images || {};
-    const withSnap = this.cameraList().filter((c) => c.snapshotUrl);
-    const keep = new Set(withSnap.map((c) => c.id));
-
-    for (const id of Object.keys(this._images)) {
-      if (!keep.has(id)) {
-        if (typeof this.unsetCameraImage === 'function') await this.unsetCameraImage(id).catch(() => {});
-        delete this._images[id];
-      }
-    }
-
-    for (const cam of withSnap) {
-      try {
-        const image = await this.ensureImage(cam);
-        if (typeof this.setCameraImage === 'function') {
-          await this.setCameraImage(cam.id, cam.label, image).catch((e) => this.error('setCameraImage failed:', e));
-        }
-        this.log(`Snapshot image registered: ${cam.id} (${cam.label})`);
-      } catch (error) {
-        this.error(`Failed to set up snapshot image ${cam.id}:`, error);
-      }
-    }
-  }
-
-  /**
-   * Flow action: capture a fresh still snapshot and return it as a Homey Image
-   * (usable as an image token in other Flow cards, e.g. a push notification).
-   */
-  async takeSnapshot(camId) {
-    const cams = this.cameraList();
-    const cam = camId
-      ? cams.find((c) => c.id === camId)
-      : (cams.find((c) => c.snapshotUrl) || cams[0]);
-    if (!cam) throw new Error('No camera is configured');
-    if (!cam.snapshotUrl) {
-      throw new Error('No snapshot URL for this camera. Add it in the device settings (Snapshot URL).');
-    }
-    const image = await this.ensureImage(cam);
-    await image.update();
-    return image;
   }
 
   // ---- Linked devices (lock + sensors) via HomeyAPI -------------------------
