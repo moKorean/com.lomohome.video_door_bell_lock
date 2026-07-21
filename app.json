@@ -267,12 +267,12 @@
               "id": "rtsp_url",
               "type": "text",
               "label": {
-                "en": "Camera 1 - RTSP URL",
-                "ko": "카메라 1 - RTSP 주소"
+                "en": "Camera 1 - Stream URL",
+                "ko": "카메라 1 - 스트림 주소"
               },
               "hint": {
-                "en": "Required. Full RTSP stream URL, e.g. rtsp://user:pass@ip:port/path",
-                "ko": "필수. 전체 RTSP 스트림 주소. 예: rtsp://user:pass@ip:port/path"
+                "en": "Required. RTSP, HLS, RTMP or DASH URL, e.g. rtsp://user:pass@ip:port/path or https://host/stream.m3u8",
+                "ko": "필수. RTSP·HLS·RTMP·DASH 주소. 예: rtsp://user:pass@ip:port/path 또는 https://host/stream.m3u8"
               },
               "value": ""
             },
@@ -289,8 +289,8 @@
               "id": "rtsp_url_2",
               "type": "text",
               "label": {
-                "en": "Camera 2 - RTSP URL",
-                "ko": "카메라 2 - RTSP 주소"
+                "en": "Camera 2 - Stream URL",
+                "ko": "카메라 2 - 스트림 주소"
               },
               "hint": {
                 "en": "Optional. Leave empty if unused.",
@@ -311,8 +311,8 @@
               "id": "rtsp_url_3",
               "type": "text",
               "label": {
-                "en": "Camera 3 - RTSP URL",
-                "ko": "카메라 3 - RTSP 주소"
+                "en": "Camera 3 - Stream URL",
+                "ko": "카메라 3 - 스트림 주소"
               },
               "hint": {
                 "en": "Optional. Leave empty if unused.",
@@ -333,8 +333,8 @@
               "id": "rtsp_url_4",
               "type": "text",
               "label": {
-                "en": "Camera 4 - RTSP URL",
-                "ko": "카메라 4 - RTSP 주소"
+                "en": "Camera 4 - Stream URL",
+                "ko": "카메라 4 - 스트림 주소"
               },
               "hint": {
                 "en": "Optional. Leave empty if unused.",

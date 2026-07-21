@@ -2,11 +2,11 @@
 
 RTSP IP 카메라(비디오 초인종 포함), 스마트 도어락, 모션·초인종 센서를 **하나의 기기 화면**으로 묶는 Homey 앱입니다. 영상·센서 상태·도어락 제어를 한 타일에서 함께 다룹니다.
 
-**RTSP를 지원하는 비디오 도어벨·카메라와 도어락을 함께 사용할 수 있습니다.**
+**RTSP·HLS·RTMP·DASH 스트림을 제공하는 비디오 도어벨·카메라와 도어락을 함께 사용할 수 있습니다.**
 
 ## 주요 기능
 
-- **RTSP 라이브 영상 (다중 카메라)**: `createVideoRTSP()` + `registerVideoUrlListener()` 로 네이티브 스트리밍(클라우드/트랜스코딩 없음). 한 기기에 카메라 1~4대.
+- **라이브 영상 (다중 카메라, 다중 포맷)**: RTSP·HLS·RTMP·DASH를 URL에서 자동 판별해 `createVideo*()` + `registerVideoUrlListener()` 로 네이티브 스트리밍(클라우드/트랜스코딩 없음). 한 기기에 카메라 1~4대.
 - **네트워크 카메라 검색**: ONVIF WS-Discovery + TCP 포트 스캔(554·8554) 폴백. 후보 선택 시 편집형 RTSP 템플릿(`rtsp://<user>:<pass>@ip:port/<path>`)을 채워주고, 예시로 수정 방법을 안내.
 - **도어락 제어(선택)**: 연동한 도어락의 `locked`를 미러링하고 타일 **빠른동작 토글**(`uiQuickAction`)로 잠금/해제.
 - **센서 연동(선택)**: 초인종 센서 → `alarm_generic`, 모션 센서 → `alarm_motion`. 연동 즉시 현재 상태를 반영하고, 변화 시 Flow 트리거.

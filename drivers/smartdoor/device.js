@@ -89,10 +89,21 @@ class SmartDoorDevice extends Device {
       .filter((c) => c.url);
   }
 
+  /** Detect the Homey video type from a stream URL (RTSP/HLS/RTMP/DASH). */
+  static videoKindFor(url) {
+    const u = String(url).trim().toLowerCase();
+    if (u.startsWith('rtsp://') || u.startsWith('rtsps://')) return 'RTSP';
+    if (u.startsWith('rtmp://') || u.startsWith('rtmps://')) return 'RTMP';
+    if (u.includes('.mpd')) return 'DASH';
+    if (u.includes('.m3u8')) return 'HLS';
+    if (u.startsWith('http://') || u.startsWith('https://')) return 'HLS';
+    return 'RTSP';
+  }
+
   async setupVideos() {
     const videos = this.homey.videos;
     if (!videos || typeof videos.createVideoRTSP !== 'function') {
-      this.error('Videos API not available; a newer Homey firmware is required for RTSP streaming');
+      this.error('Videos API not available; a newer Homey firmware is required for video streaming');
       return;
     }
     this._videos = this._videos || {};
@@ -115,12 +126,18 @@ class SmartDoorDevice extends Device {
           try { await this._videos[cam.id].unregister(); } catch (e) { /* ignore */ }
         }
         const url = cam.url;
-        const video = await videos.createVideoRTSP();
+        const kind = SmartDoorDevice.videoKindFor(url);
+        const create = videos[`createVideo${kind}`];
+        if (typeof create !== 'function') {
+          this.error(`Video type ${kind} not supported by this Homey firmware`);
+          continue;
+        }
+        const video = await create.call(videos);
         // Homey requests the stream URL on demand via this listener.
         video.registerVideoUrlListener(async () => ({ url }));
         await this.setCameraVideo(cam.id, cam.label, video);
         this._videos[cam.id] = video;
-        this.log(`RTSP video registered: ${cam.id} (${cam.label})`);
+        this.log(`${kind} video registered: ${cam.id} (${cam.label})`);
       } catch (error) {
         this.error(`Failed to set up video ${cam.id}:`, error);
       }
