@@ -69,7 +69,11 @@
   }
   .btn:active { transform: translateY(1px); }
   .btn.secondary { background: #ffffff; }
-  .btn.primary { background: var(--gold); border-color: var(--gold); color: #1a1a1e; padding: 16px 18px; font-size: 15.5px; margin-top: 10px; }
+  .btn.primary {
+    background: var(--gold) !important; border-color: var(--gold); color: #1a1a1e !important;
+    font-weight: 800; padding: 18px 20px; font-size: 17px; border-radius: 14px;
+    margin-top: 16px; box-shadow: 0 6px 16px rgba(238,191,0,.45);
+  }
   .btn.primary:active { background: var(--gold-press); }
   .btn:disabled { opacity: .5; cursor: default; }
   .btn.ghost { border: 1px dashed var(--field-border); background: transparent; color: var(--muted); }
@@ -77,7 +81,14 @@
   #results { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
   #results .btn { padding: 10px 12px; text-align: left; }
 
-  #status { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
+  #status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
+  #status .st-text { flex: 1 1 auto; }
+  .spinner {
+    width: 15px; height: 15px; flex: 0 0 auto;
+    border: 2px solid rgba(0,0,0,.15); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   #status code, .hint code {
     background: var(--badge-bg); padding: 1px 5px; border-radius: 5px;
     font-size: 12px; word-break: break-all;
@@ -297,9 +308,10 @@
     try { if (H && H.emit) H.emit('uilog', String(msg)); } catch (e) { /* ignore */ }
   }
 
-  function setStatus(msg) {
+  function setStatus(msg, loading) {
     var el = document.getElementById('status');
-    if (el) el.innerHTML = msg || '';
+    if (!el) return;
+    el.innerHTML = (loading ? '<span class="spinner"></span>' : '') + '<span class="st-text">' + (msg || '') + '</span>';
   }
 
   function wireButtons() {
@@ -309,7 +321,7 @@
   }
 
   async function loadDevices() {
-    setStatus(t('loadingDevices'));
+    setStatus(t('loadingDevices'), true);
     uilog('loadDevices: calling listLocks/listSensors');
     try {
       var locks = (await H.emit('listLocks')) || [];
@@ -404,7 +416,7 @@
   }
 
   async function searchCameras() {
-    setStatus(t('searching'));
+    setStatus(t('searching'), true);
     document.getElementById('results').innerHTML = '';
     uilog('searchCameras: calling discoverCameras');
     try {
@@ -433,7 +445,7 @@
     if (c.onvif) {
       var username = document.getElementById('ou').value.trim();
       var password = document.getElementById('op').value;
-      setStatus(t('gettingUrl', c.ip));
+      setStatus(t('gettingUrl', c.ip), true);
       try {
         var uri = await H.emit('resolveStreamUri', { ip: c.ip, onvifPort: c.onvifPort, username: username, password: password });
         if (uri) { fillFirstEmptyCamera(uri, c.ip); setStatus(t('onvifAdded')); } else setStatus(t('noUri'));
