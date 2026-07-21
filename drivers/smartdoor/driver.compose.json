@@ -79,6 +79,58 @@
           "type": "text",
           "label": { "en": "Camera 4 - Name", "ko": "카메라 4 - 이름" },
           "value": ""
+        },
+        {
+          "id": "rtsp_url_5",
+          "type": "text",
+          "label": { "en": "Camera 5 - Stream URL", "ko": "카메라 5 - 스트림 주소" },
+          "hint": { "en": "Optional. Leave empty if unused.", "ko": "선택. 사용하지 않으면 비워두세요." },
+          "value": ""
+        },
+        {
+          "id": "camera_name_5",
+          "type": "text",
+          "label": { "en": "Camera 5 - Name", "ko": "카메라 5 - 이름" },
+          "value": ""
+        },
+        {
+          "id": "rtsp_url_6",
+          "type": "text",
+          "label": { "en": "Camera 6 - Stream URL", "ko": "카메라 6 - 스트림 주소" },
+          "hint": { "en": "Optional. Leave empty if unused.", "ko": "선택. 사용하지 않으면 비워두세요." },
+          "value": ""
+        },
+        {
+          "id": "camera_name_6",
+          "type": "text",
+          "label": { "en": "Camera 6 - Name", "ko": "카메라 6 - 이름" },
+          "value": ""
+        },
+        {
+          "id": "rtsp_url_7",
+          "type": "text",
+          "label": { "en": "Camera 7 - Stream URL", "ko": "카메라 7 - 스트림 주소" },
+          "hint": { "en": "Optional. Leave empty if unused.", "ko": "선택. 사용하지 않으면 비워두세요." },
+          "value": ""
+        },
+        {
+          "id": "camera_name_7",
+          "type": "text",
+          "label": { "en": "Camera 7 - Name", "ko": "카메라 7 - 이름" },
+          "value": ""
+        },
+        {
+          "id": "rtsp_url_8",
+          "type": "text",
+          "label": { "en": "Camera 8 - Stream URL", "ko": "카메라 8 - 스트림 주소" },
+          "hint": { "en": "Optional. Leave empty if unused.", "ko": "선택. 사용하지 않으면 비워두세요." },
+          "value": ""
+        },
+        {
+          "id": "camera_name_8",
+          "type": "text",
+          "label": { "en": "Camera 8 - Name", "ko": "카메라 8 - 이름" },
+          "value": ""
         }
       ]
     },

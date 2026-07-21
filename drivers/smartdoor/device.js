@@ -79,6 +79,10 @@ class SmartDoorDevice extends Device {
       { url: s.rtsp_url_2, label: s.camera_name_2 },
       { url: s.rtsp_url_3, label: s.camera_name_3 },
       { url: s.rtsp_url_4, label: s.camera_name_4 },
+      { url: s.rtsp_url_5, label: s.camera_name_5 },
+      { url: s.rtsp_url_6, label: s.camera_name_6 },
+      { url: s.rtsp_url_7, label: s.camera_name_7 },
+      { url: s.rtsp_url_8, label: s.camera_name_8 },
     ];
     return slots
       .map((c, i) => ({

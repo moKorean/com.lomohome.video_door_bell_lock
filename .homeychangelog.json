@@ -4,5 +4,9 @@
   },
   "1.0.1": {
     "en": "Add flow cards"
+  },
+  "1.1.0": {
+    "en": "Multi-format streams (RTSP, HLS, RTMP, DASH), up to 8 cameras, redesigned pairing screen, and new lock triggers and actions.",
+    "ko": "다중 스트림 포맷(RTSP·HLS·RTMP·DASH), 카메라 최대 8대, 페어링 화면 리디자인, 도어락 잠금/해제 트리거·액션 추가."
   }
 }
